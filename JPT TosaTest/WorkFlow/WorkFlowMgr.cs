@@ -110,8 +110,8 @@ namespace JPT_TosaTest.WorkFlow
             MotionCards.MotionMgr.Instance.StopAll();
             foreach (var it in stationDic)
                 bRet &= it.Value.Stop();
-            foreach (var it in stationDic)
-                it.Value.WaitComplete();
+            //foreach (var it in stationDic)
+            //    it.Value.WaitComplete();
             return bRet;
         }
 

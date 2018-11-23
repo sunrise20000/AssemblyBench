@@ -234,7 +234,7 @@ namespace JPT_TosaTest.Vision
                         HoImageList[nCamID] = null;
                     }
                     HoImageList[nCamID] = image.SelectObj(1);
-                    if (!SyncEvent.WaitOne(20))
+                    if (!SyncEvent.WaitOne(70))
                     {
                         foreach (var it in HwindowDic[nCamID])
                             if (it.Value != -1)

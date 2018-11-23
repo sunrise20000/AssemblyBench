@@ -20,6 +20,7 @@ namespace AxisParaLib
     public class AxisArgs : INotifyPropertyChanged
     {
         private double _curAbsPos;
+        private int _curAbsPosPuse;
         private bool _isHomed;
         private bool _isBusy;
         private byte _errorCode;
@@ -53,6 +54,11 @@ namespace AxisParaLib
             {
                 UpdateProperty(ref _curAbsPos, value);
             }
+        }
+        public int CurAbsPosPuse
+        {
+            get { return _curAbsPosPuse; }
+            set { UpdateProperty(ref _curAbsPosPuse, value); }
         }
         public bool IsHomed
         {

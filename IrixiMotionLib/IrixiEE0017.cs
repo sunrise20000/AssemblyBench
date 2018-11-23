@@ -169,7 +169,30 @@ namespace JPT_TosaTest.MotionCards
                 }
             }
         }
-
+        public bool GetCurrentPosPuse(int AxisNo, out int Pos)
+        {
+            lock (ComportLock)
+            {
+                Pos = 0;
+                if (AxisNo > 12 || AxisNo < 1)
+                {
+                    return false;
+                }
+                if (GetMcsuState(AxisNo, out AxisArgs axisArgs))
+                {
+                    if (axisArgs != null && axisArgs.ErrorCode == 0)
+                    {
+                        Pos = axisArgs.CurAbsPosPuse;
+                        return true;
+                    }
+                    return false;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
         /// <summary>
         /// 回原点
         /// </summary>
@@ -256,37 +279,41 @@ namespace JPT_TosaTest.MotionCards
         /// <returns></returns>
         public bool MoveAbs(int AxisNo, double Acc, double Speed, double Pos)
         {
-            try
+            lock (ComportLock)
             {
                 if (AxisNo > 12 || AxisNo < 1)
                 {
-                    return false;
+                    throw new Exception($"Wrong AxisNo:{AxisNo}");
                 }
-                double RelPos = 0;
                 if (GetMcsuState(AxisNo, out AxisArgs axisArgs))
                 {
                     if (axisArgs != null)
                     {
                         lock (axisArgs.AxisLock)
                         {
-                            if (axisArgs.ErrorCode == 0 || axisArgs.ErrorCode==0x83 || axisArgs.ErrorCode==0x84)
+                            if (axisArgs.ErrorCode == 0 || axisArgs.ErrorCode == 0x83 || axisArgs.ErrorCode == 0x84)
                             {
-                                RelPos = Pos - axisArgs.CurAbsPos/axisArgs.Unit.Factor;
+                                int TarPosPuse = (int)(Pos * axisArgs.Unit.Factor * AxisStateList[AxisNo - 1].GainFactor);    //目标位置
+                                int CurPosPuse = AxisStateList[AxisNo - 1].CurAbsPosPuse;
+                                int distancePuse = TarPosPuse - CurPosPuse;
+                                SetMoveAcc(AxisNo, Acc);    //设置加速度
+
+                                CommandMove.FrameLength = 0x0C;
+                                CommandMove.AxisNo = (byte)AxisNo;
+                                CommandMove.Distance = distancePuse;
+                                CommandMove.SpeedPercent = (byte)Speed;
+                                byte[] cmd = CommandMove.ToBytes();
+                                this.ExcuteCmd(cmd);
+                                CheckAxisState(Enumcmd.HOST_CMD_MOVE, AxisNo);
+                                return true;
                             }
+                            else
+                                throw new Exception($"轴发生了错误{axisArgs.ErrorCode}");
                         }
                     }
+                    throw new Exception($"轴{AxisNo}状态Args==null");
                 }
-                else
-                {
-                    return false;
-                }
-
-               return  MoveRel(AxisNo, Acc, Speed, RelPos);
-               
-            }
-            catch (Exception ex)
-            {
-                return false;
+                throw new Exception($"获取轴{AxisNo}状态失败");
             }
 
         }
@@ -301,37 +328,47 @@ namespace JPT_TosaTest.MotionCards
         /// <returns></returns>
         public bool MoveAbs(int AxisNo, double Acc, double Speed, double Pos, EnumTriggerType TriggerType, double Interval)
         {
-            try
+            lock (ComportLock)
             {
-                if (AxisNo > 12 || AxisNo < 1)
+                try
                 {
-                    return false;
-                }
-                double RelPos = 0;
-                if (GetMcsuState(AxisNo, out AxisArgs axisArgs))
-                {
-                    if (axisArgs != null)
+                    if (AxisNo > 12 || AxisNo < 1)
                     {
-                        lock (axisArgs.AxisLock)
+                        return false;
+                    }
+                    double RelPos = 0;
+                    if (GetMcsuState(AxisNo, out AxisArgs axisArgs))
+                    {
+                        if (axisArgs != null)
                         {
+
                             if (axisArgs.ErrorCode == 0 || axisArgs.ErrorCode == 0x83 || axisArgs.ErrorCode == 0x84)
                             {
-                                RelPos = Pos - axisArgs.CurAbsPos / axisArgs.Unit.Factor;
+                                SetMoveAcc(AxisNo, Acc);    //设置加速度
+                                int TarPosPuse = (int)(Pos * axisArgs.Unit.Factor * AxisStateList[AxisNo - 1].GainFactor);    //目标位置
+                                int CurPosPuse = AxisStateList[AxisNo - 1].CurAbsPosPuse;
+                                int distancePuse = TarPosPuse - CurPosPuse;
+                                UInt16 IntervalPuse = (UInt16)(Interval * AxisStateList[AxisNo - 1].GainFactor);
+
+                                CommandMoveTrigger.TriggerType = TriggerType == EnumTriggerType.ADC ? Enumcmd.HOST_CMD_MOVE_T_ADC : Enumcmd.HOST_CMD_MOVE_T_OUT;
+                                CommandMoveTrigger.AxisNo = (byte)AxisNo;
+                                CommandMoveTrigger.Distance = distancePuse;
+                                CommandMoveTrigger.SpeedPercent = (byte)Speed;
+                                CommandMoveTrigger.TriggerInterval = IntervalPuse;
+                                byte[] cmd = CommandMoveTrigger.ToBytes();
+                                this.ExcuteCmd(cmd);
+                                CheckAxisState(Enumcmd.HOST_CMD_MOVE, AxisNo);
+                                return true;
                             }
+
                         }
                     }
+                    return false;
                 }
-                else
+                catch (Exception ex)
                 {
                     return false;
                 }
-                
-                return MoveRel(AxisNo, Acc, Speed, RelPos, TriggerType, Interval);
-                //return WaitLongChenck(AxisNo);
-            }
-            catch (Exception ex)
-            {
-                return false;
             }
 
 
@@ -810,6 +847,7 @@ namespace JPT_TosaTest.MotionCards
                             AxisStateList[axisIndex - 1].IsBusy = state.IsBusy;
                             AxisStateList[axisIndex - 1].ErrorCode = state.Error;
                             AxisStateList[axisIndex - 1].CurAbsPos = (double)state.AbsPosition / (double)AxisStateList[axisIndex - 1].GainFactor;
+                            AxisStateList[axisIndex - 1].CurAbsPosPuse = state.AbsPosition;
                         }
                         axisargs = AxisStateList[axisIndex - 1];
                     }

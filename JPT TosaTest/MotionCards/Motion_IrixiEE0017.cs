@@ -173,13 +173,14 @@ namespace JPT_TosaTest.MotionCards
         /// <returns></returns>
         public  bool MoveAbs(int AxisNo, double Acc, double Speed, double Pos)
         {
+            bool bRet = false;
             if (AxisNo > MAX_AXIS - MIN_AXIS || AxisNo < 0)
             {
-                return false;
+                bRet= false;
             }
             int axisIndex = AxisNo  + 1;
-            return _controller.MoveAbs(axisIndex, Acc, Speed, Pos);
-
+            bRet= _controller.MoveAbs(axisIndex, Acc, Speed, Pos);
+            return bRet;
         }
 
         /// <summary>
