@@ -273,49 +273,26 @@ namespace JPT_TosaTest.ViewModel
         {
             try
             {
-                int nCamID = 0;
-                FlagToolDaga data = para as FlagToolDaga;
-                var L1Data = File.ReadAllText($"{PATH_TOOLPATH}{data.L1Name}.para");
-                var L2Data = File.ReadAllText($"{PATH_TOOLPATH}{data.L2Name}.para");
-                List<string> LineListString = new List<string>() { L1Data, L2Data };
-                string ModelName = L1Data.Split('|')[1].Split('&')[4];
-
-                StepFindModel FindModelTool = new StepFindModel()
+                //找Model
+                string ModelFulllPathFileName = $"{PATH_MODELPATH}{Config.ConfigMgr.Instance.ProcessData.TiaModelName}.shm";
+                StepFindModel FindTiaModelStep = new StepFindModel()
                 {
-                    In_CamID = nCamID,
-                    In_ModelNameFullPath = $"{PATH_MODELPATH}Cam0_{ModelName}.shm"
+                    In_CamID = 0,
+                    In_ModelNameFullPath = ModelFulllPathFileName
                 };
-                HalconVision.Instance.ProcessImage(FindModelTool);
+                HalconVision.Instance.ProcessImage(FindTiaModelStep);
 
-                //FindLine
-                StepFindeLineByModel FindLineTool = new StepFindeLineByModel()
+                StepFindTia0 FindTia0Tool = new StepFindTia0()
                 {
-                    In_CamID = nCamID,
-                    In_Hom_mat2D = FindModelTool.Out_Hom_mat2D,
-                    In_ModelRow = FindModelTool.Out_ModelRow,
-                    In_ModelCOl = FindModelTool.Out_ModelCol,
-                    In_ModelPhi = FindModelTool.Out_ModelPhi,
-                    In_LineRoiPara = LineListString
+                    In_CamID = 0,
+                    In_ModelRow = FindTiaModelStep.Out_ModelRow,
+                    In_ModelCol = FindTiaModelStep.Out_ModelCol,
+                    In_ModelPhi = FindTiaModelStep.Out_ModelPhi
+
                 };
-                HalconVision.Instance.ProcessImage(FindLineTool);
-
-
-                //ShowFlag
-                var LineListForDraw = new List<Tuple<double, double, double, double>>();
-                foreach (var it in FindLineTool.Out_Lines)
-                    LineListForDraw.Add(new Tuple<double, double, double, double>(it.Item1.D, it.Item2.D, it.Item3.D, it.Item4.D));
-                StepShowFlag ShowFlagTool = new StepShowFlag()
-                {
-                    In_CamID = nCamID,
-                    In_CenterRow = data.Halcon_Row,
-                    In_CenterCol = data.Halcon_Col,
-                    In_Phi = data.Halcon_Phi,
-                    In_HLine = LineListForDraw[0],
-                    In_VLine = LineListForDraw[1],
-                    In_RegionFullPathFileName = $"{PATH_TOOLPATH}Flag.reg}}"
-                };
-                HalconVision.Instance.ProcessImage(ShowFlagTool);
-
+                HalconVision.Instance.ProcessImage(FindTia0Tool);
+                
+                
             }
             catch (Exception ex)
             {

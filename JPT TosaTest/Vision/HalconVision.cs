@@ -805,7 +805,6 @@ namespace JPT_TosaTest.Vision
                 return false;
             }
         }
-
         public bool OpenImageInWindow(int nCamID, string imageFilePath, HTuple hwindow)
         {
             try
@@ -881,7 +880,91 @@ namespace JPT_TosaTest.Vision
             }
 
         }
+        public bool FindTia0(HObject Image,HTuple nCamID,HTuple ModelRow, HTuple ModelCol, HTuple ModelPhi,out HObject RegionOut)
+        {
+            HOperatorSet.GenEmptyObj(out RegionOut);
+            // Local iconic variables 
+            HObject ho_Image1, ho_Rectangle, ho_ImageReduced;
+            HObject ho_Regions, ho_ConnectedRegions, ho_SelectedRegions;
+            HObject ho_SelectedRegions1, ho_SortedRegions, ho_RegionTrans;
+            HObject ho_Rectangle1 = null;
+           
 
+            // Local control variables 
+            HTuple hv_Area, hv_Row, hv_Column;
+            HTuple hv_Phi, hv_Row3, hv_Column3, hv_Phi1, hv_Length1;
+            HTuple hv_Length2, hv_PhiSum, hv_Index1, hv_L2Mean, hv_L1Mean;
+            HTuple hv_PhiMean, hv_DeltaRow, hv_DeltaCol, hv_NewRow;
+            HTuple hv_NewCol, hv_Index;
+
+            // Initialize local and output iconic variables 
+            HOperatorSet.GenEmptyObj(out ho_Image1);
+            HOperatorSet.GenEmptyObj(out ho_Rectangle);
+            HOperatorSet.GenEmptyObj(out ho_ImageReduced);
+            HOperatorSet.GenEmptyObj(out ho_Regions);
+            HOperatorSet.GenEmptyObj(out ho_ConnectedRegions);
+            HOperatorSet.GenEmptyObj(out ho_SelectedRegions);
+            HOperatorSet.GenEmptyObj(out ho_SelectedRegions1);
+            HOperatorSet.GenEmptyObj(out ho_SortedRegions);
+            HOperatorSet.GenEmptyObj(out ho_RegionTrans);
+            HOperatorSet.GenEmptyObj(out ho_Rectangle1);
+    
+            ho_Rectangle.Dispose();
+            HOperatorSet.GenRectangle1(out ho_Rectangle, ModelRow-134, ModelCol-1349, ModelRow+62, ModelCol-379);
+            ho_ImageReduced.Dispose();
+            HOperatorSet.ReduceDomain(Image, ho_Rectangle, out ho_ImageReduced);
+            ho_Regions.Dispose();
+            HOperatorSet.Threshold(ho_ImageReduced, out ho_Regions, 0, 20);
+            ho_ConnectedRegions.Dispose();
+            HOperatorSet.Connection(ho_Regions, out ho_ConnectedRegions);
+            ho_SelectedRegions.Dispose();
+            HOperatorSet.SelectShape(ho_ConnectedRegions, out ho_SelectedRegions, "area", "and", 2201.39, 4500);
+            ho_SelectedRegions1.Dispose();
+            HOperatorSet.SelectShape(ho_SelectedRegions, out ho_SelectedRegions1, "height","and", 20, 79.94);
+            ho_SortedRegions.Dispose();
+            HOperatorSet.SortRegion(ho_SelectedRegions1, out ho_SortedRegions, "character", "true", "row");
+
+            ho_RegionTrans.Dispose();
+            HOperatorSet.ShapeTrans(ho_SelectedRegions1, out ho_RegionTrans, "rectangle2");
+            HOperatorSet.AreaCenter(ho_RegionTrans, out hv_Area, out hv_Row, out hv_Column);
+            HOperatorSet.OrientationRegion(ho_RegionTrans, out hv_Phi);
+            HOperatorSet.SmallestRectangle2(ho_RegionTrans, out hv_Row3, out hv_Column3,
+                out hv_Phi1, out hv_Length1, out hv_Length2);
+            hv_PhiSum = 0;
+            for (hv_Index1 = 1; (int)hv_Index1 <= (int)(new HTuple(hv_Phi1.TupleLength())); hv_Index1 = (int)hv_Index1 + 1)
+            {
+                if ((int)(new HTuple(((hv_Phi1.TupleSelect(hv_Index1 - 1))).TupleLess(0))) != 0)
+                {
+                    hv_Phi1[hv_Index1 - 1] = (hv_Phi1.TupleSelect(hv_Index1 - 1)) + ((new HTuple(90)).TupleRad() );
+                }
+                hv_PhiSum = hv_PhiSum + (hv_Phi1.TupleSelect(hv_Index1 - 1));
+            }
+
+            HOperatorSet.TupleMean(hv_Length2, out hv_L2Mean);
+            HOperatorSet.TupleMean(hv_Length1, out hv_L1Mean);
+            hv_PhiMean = hv_PhiSum / (new HTuple(hv_Phi1.TupleLength()));
+
+            hv_DeltaRow = ((hv_Row.TupleSelect(2)) - (hv_Row.TupleSelect(0))) / 4;
+            hv_DeltaCol = ((hv_Column.TupleSelect(2)) - (hv_Column.TupleSelect(0))) / 4;
+
+            hv_NewRow = (hv_Row.TupleSelect(2)) + hv_DeltaRow;
+            hv_NewCol = (hv_Column.TupleSelect(2)) + hv_DeltaCol;
+            for (hv_Index = 1; (int)hv_Index <= 4; hv_Index = (int)hv_Index + 1)
+            {
+                ho_Rectangle1.Dispose();
+                HOperatorSet.GenRectangle2(out ho_Rectangle1, hv_NewRow - ((2 * (hv_Index - 1)) * hv_DeltaRow),
+                    hv_NewCol - ((2 * (hv_Index - 1)) * hv_DeltaCol), hv_PhiMean, hv_L1Mean - 60, 1000);
+                HOperatorSet.Union2(RegionOut, ho_Rectangle1, out RegionOut);
+            }
+            foreach (var it in HwindowDic[nCamID])
+            {
+                HOperatorSet.SetDraw(it.Value, "margin");
+                HOperatorSet.SetColor(it.Value, "red");
+                HOperatorSet.SetLineWidth(it.Value, 1);
+                HOperatorSet.DispObj(RegionOut, it.Value);
+            }
+            return true;
+        }
         #region 专用
         /// <summary>
         /// 根据模板文件找出模板位置ModelPos，并输出hom_mat2D
@@ -1059,11 +1142,7 @@ namespace JPT_TosaTest.Vision
                 return false;
             }
         }
-        public bool FindTia(HObject image, List<string> LineParaList, HTuple hom_2D, HTuple ModelPos, out List<object> lineList)
-        {
-            lineList = new List<object>();
-            return true;
-        }
+
         public bool DisplayLines(int nCamID, List<Tuple<HTuple, HTuple, HTuple, HTuple>> lineList, string Color = "red")
         {
             try
@@ -1257,7 +1336,7 @@ namespace JPT_TosaTest.Vision
                 HOperatorSet.DispObj(HoImageList[nCamID], WindowHandle);
 
                 HOperatorSet.SetColor(WindowHandle, "red");
-                HOperatorSet.SetLineWidth(WindowHandle, 3);
+                HOperatorSet.SetLineWidth(WindowHandle, 1);
 
                 HOperatorSet.SetSystem("flush_graphic", "true");
                 HOperatorSet.DispLine(WindowHandle, hv_OutRowStart, hv_OutColStart, hv_OutRowEnd, hv_OutColEnd);
@@ -1305,7 +1384,7 @@ namespace JPT_TosaTest.Vision
                 HOperatorSet.DispObj(HoImageList[nCamID], WindowHandle);
 
                 HOperatorSet.SetColor(WindowHandle, "red");
-                HOperatorSet.SetLineWidth(WindowHandle, 3);
+                HOperatorSet.SetLineWidth(WindowHandle, 1);
 
                 HOperatorSet.SetSystem("flush_graphic", "true");
                 HOperatorSet.DispLine(WindowHandle, OutFirstRowStart, FirstColStart, OutFirstRowEnd, OutFirstColEnd);

@@ -300,6 +300,7 @@
     <Compile Include="Vision\Light\LigtMgr.cs" />
     <Compile Include="Vision\ProcessStep\StepCalibImage.cs" />
     <Compile Include="Vision\ProcessStep\StepDrawFlag.cs" />
+    <Compile Include="Vision\ProcessStep\StepFindTia0.cs" />
     <Compile Include="Vision\ProcessStep\StepShowFlag.cs" />
     <Compile Include="Vision\ProcessStep\StepFindeLineByModel.cs" />
     <Compile Include="Vision\ProcessStep\StepFindModel.cs" />

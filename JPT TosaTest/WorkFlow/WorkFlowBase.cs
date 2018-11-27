@@ -50,6 +50,7 @@ namespace JPT_TosaTest.WorkFlow
                     CmdPara = para;
             }
         }
+        protected int SubStep = -1;
         protected void PopAndPushStep(object Step)
         {
             lock (_lock)
@@ -110,8 +111,9 @@ namespace JPT_TosaTest.WorkFlow
         }
         public bool Stop()
         {
-            cts.Cancel();
             ClearAllStep();
+            SubStep = -1;
+            cts.Cancel();
             return true;
         }
         public bool Pause()
