@@ -105,6 +105,20 @@ namespace JPT_TosaTest.UserCtrl.VisionDebugTool
         }
         public static readonly DependencyProperty AddFlagCommandProperty = DependencyProperty.Register("AddFlagCommand", typeof(RelayCommand<ToolDataBase>), typeof(UC_FlagPanel));
 
+        public RelayCommand<ToolDataBase> SubFlagCommand
+        {
+            get
+            {
+                return GetValue(SubFlagCommandProperty) as RelayCommand<ToolDataBase>;
+            }
+            set
+            {
+                SetValue(SubFlagCommandProperty, value);
+            }
+
+        }
+        public static readonly DependencyProperty SubFlagCommandProperty = DependencyProperty.Register("SubFlagCommand", typeof(RelayCommand<ToolDataBase>), typeof(UC_FlagPanel));
+
 
         public object UpdateCommandParameter
         {
@@ -124,15 +138,29 @@ namespace JPT_TosaTest.UserCtrl.VisionDebugTool
         {
             get
             {
-                return GetValue(UpdateCommandParameterProperty) as object;
+                return GetValue(AddFlagCommandParameterProperty) as object;
             }
             set
             {
-                SetValue(UpdateCommandParameterProperty, value);
+                SetValue(AddFlagCommandParameterProperty, value);
             }
 
         }
         public static readonly DependencyProperty AddFlagCommandParameterProperty = DependencyProperty.Register("AddFlagCommandParameter", typeof(object), typeof(UC_FlagPanel));
+
+        public object SubFlagCommandParameter
+        {
+            get
+            {
+                return GetValue(SubFlagCommandParameterProperty) as object;
+            }
+            set
+            {
+                SetValue(SubFlagCommandParameterProperty, value);
+            }
+
+        }
+        public static readonly DependencyProperty SubFlagCommandParameterProperty = DependencyProperty.Register("SubFlagCommandParameter", typeof(object), typeof(UC_FlagPanel));
 
 
 
@@ -182,6 +210,13 @@ namespace JPT_TosaTest.UserCtrl.VisionDebugTool
             UpdateTagToolData();
             if (AddFlagCommand != null)
                 AddFlagCommand.Execute(AddFlagCommandParameter);
+        }
+
+        private void ButtonSubFlag_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateTagToolData();
+            if (SubFlagCommand != null)
+                SubFlagCommand.Execute(SubFlagCommandParameter);
         }
     }
 }

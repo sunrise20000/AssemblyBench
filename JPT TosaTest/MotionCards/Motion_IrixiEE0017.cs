@@ -321,7 +321,7 @@ namespace JPT_TosaTest.MotionCards
         /// <returns></returns>
         public bool Reset()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
 

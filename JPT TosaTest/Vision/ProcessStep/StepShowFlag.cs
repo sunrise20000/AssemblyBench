@@ -9,6 +9,10 @@ namespace JPT_TosaTest.Vision.ProcessStep
 {
     public class StepShowFlag : VisionProcessStepBase
     {
+        public StepShowFlag()
+        {
+            In_IsShowResult = true;
+        }
         /// <summary>
         /// 垂直参考线
         /// </summary>
@@ -55,13 +59,14 @@ namespace JPT_TosaTest.Vision.ProcessStep
             GeometryPose[2] = In_Phi;
 
             //显示直线的矩形框
-            HalconVision.Instance.DisplayLines(In_CamID, TupleList);    //显示Tia的参考线
+            if(In_IsShowResult)
+                HalconVision.Instance.DisplayLines(In_CamID, TupleList);    //显示Tia的参考线
         
             //利用参考线画出原来画的区域
             HOperatorSet.ReadRegion(out HObject OldRegion, @"VisionData\ToolData\Flag.reg");
 
             HalconVision.Instance.GetGeometryRegionBy2Lines(In_CamID,OldRegion, TupleList[0].Item1, TupleList[0].Item2, TupleList[0].Item3, TupleList[0].Item4,
-                                    TupleList[1].Item1, TupleList[1].Item2, TupleList[1].Item3, TupleList[1].Item4, GeometryPose, out HObject NewRegion);
+                                    TupleList[1].Item1, TupleList[1].Item2, TupleList[1].Item3, TupleList[1].Item4, GeometryPose, out HObject NewRegion, In_IsShowResult);
 
 
             if (NewRegion.IsInitialized())

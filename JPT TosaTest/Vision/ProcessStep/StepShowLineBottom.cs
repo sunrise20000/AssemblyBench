@@ -9,6 +9,10 @@ namespace JPT_TosaTest.Vision.ProcessStep
 {
     public class StepShowLineBottom : VisionProcessStepBase
     {
+        public StepShowLineBottom()
+        {
+            In_IsShowResult = true;
+        }
         public List<Tuple<double, double, double, double>> In_Lines {get;set;}
         public double In_PixGainFactor { get; set; }
 
@@ -61,7 +65,8 @@ namespace JPT_TosaTest.Vision.ProcessStep
                         Out_Cols[3] = listFinal[2 * i + 1].Item2;
                         Out_RowsList.Add(Out_Rows);
                         Out_ColsList.Add(Out_Cols);
-                        HalconVision.Instance.DisplayPolygonRegion(0, Out_Rows, Out_Cols);
+                        if(In_IsShowResult)
+                            HalconVision.Instance.DisplayPolygonRegion(0, Out_Rows, Out_Cols);
                     }
                     //画最后一条平行线
                     HalconVision.Instance.GetParallelLineFromDistance(TupleList[LineNum - 1].Item1, TupleList[LineNum - 1].Item2, TupleList[LineNum - 1].Item3, TupleList[LineNum - 1].Item4, PadOffset, "row", -1, out HTuple hv_PLineRow, out HTuple hv_PLineCol,
@@ -69,10 +74,13 @@ namespace JPT_TosaTest.Vision.ProcessStep
                     //平行线
                     Out_Lines = new List<Tuple<HTuple, HTuple, HTuple, HTuple>> {new Tuple<HTuple, HTuple, HTuple, HTuple> (hv_PLineRow, hv_PLineCol, hv_PLineRow1, hv_PLineCol1) };
 
-                    HalconVision.Instance.DisplayLines(In_CamID, Out_Lines);
-                   // HalconVision.Instance.SetRefreshWindow(In_CamID,true);
-                    //原始输入线
-                    HalconVision.Instance.DisplayLines(In_CamID, TupleList);
+                    if (In_IsShowResult)
+                    {
+                        HalconVision.Instance.DisplayLines(In_CamID, Out_Lines);
+                        // HalconVision.Instance.SetRefreshWindow(In_CamID,true);
+                        //原始输入线
+                        HalconVision.Instance.DisplayLines(In_CamID, TupleList);
+                    }
                     return true;
                 }
                 else

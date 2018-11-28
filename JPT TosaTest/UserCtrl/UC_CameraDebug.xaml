@@ -128,7 +128,7 @@
                                         <ColumnDefinition Width="50"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Image Source="{Binding StrCameraState,Converter={StaticResource Text2CameStateImage}}" Margin="5"/>
+                                    <Image Source="{Binding StrCameraState,Converter={StaticResource Text2CameStateImage}}" Width="12" Height="12"/>
                                     <TextBlock Text="{Binding CameraName}" Grid.Column="1" FontSize="15" VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
@@ -374,7 +374,8 @@
                                                              LineList="{Binding EdgeFileCollect}"
                                                              SaveParaCommand="{Binding SaveEdgeToolCommand}" SaveCommandParameter="{Binding Data, RelativeSource={RelativeSource Mode=Self}}"
                                                              UpdateParaCommand="{Binding UpdateEdgeToolCommand}" UpdateCommandParameter="{Binding Data, RelativeSource={RelativeSource Mode=Self}}"
-                                                             AddFlagCommand="{Binding AddFlagCommand}" AddFlagCommandParameter="{Binding Data, RelativeSource={RelativeSource Mode=Self}}"/>
+                                                             AddFlagCommand="{Binding AddFlagCommand}" AddFlagCommandParameter="{Binding Data, RelativeSource={RelativeSource Mode=Self}}"
+                                                             SubFlagCommand="{Binding SubFlagCommand}" SubFlagCommandParameter="{Binding Data, RelativeSource={RelativeSource Mode=Self}}"/>
                                 </Grid>
                             </Grid>
                         </TabItem>

@@ -9,7 +9,10 @@ namespace JPT_TosaTest.Vision.ProcessStep
 {
     public class StepFindeLineByModel : VisionProcessStepBase
     {
-
+        public StepFindeLineByModel()
+        {
+            In_IsShowResult = true;
+        }
 
         public object In_Hom_mat2D { get; set; }
         public double In_ModelRow { get; set; } 
@@ -30,7 +33,7 @@ namespace JPT_TosaTest.Vision.ProcessStep
                 ModelPos[0] = In_ModelRow;
                 ModelPos[1] = In_ModelCOl;
                 ModelPos[2] = In_ModelPhi;
-                bool bRet = HalconVision.Instance.FindLineBasedModelRoi(In_Image, In_LineRoiPara, (HTuple)In_Hom_mat2D, ModelPos, out List<object> lineList);   //只需要显示
+                bool bRet = HalconVision.Instance.FindLineBasedModelRoi(In_Image, In_LineRoiPara, (HTuple)In_Hom_mat2D, ModelPos, out List<object> lineList,In_IsShowResult);   //只需要显示
                 if (Out_Lines == null)
                     Out_Lines = new List<Tuple<HTuple, HTuple, HTuple, HTuple>>();
                 if (bRet && lineList != null && lineList.Count > 0)

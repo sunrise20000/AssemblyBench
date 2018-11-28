@@ -8,6 +8,10 @@ namespace JPT_TosaTest.Vision.ProcessStep
 {
     public class StepFindModel : VisionProcessStepBase
     {
+        public StepFindModel()
+        {
+            In_IsShowResult = true;
+        }
         public string In_ModelNameFullPath { get; set; }
 
 
@@ -24,7 +28,7 @@ namespace JPT_TosaTest.Vision.ProcessStep
             try
             {
                 bool bRet = false;
-                bRet=HalconVision.Instance.FindModelAndGetData(In_Image, In_ModelNameFullPath, out HTuple home_mat2D, out HTuple ModelPos);
+                bRet=HalconVision.Instance.FindModelAndGetData(In_Image, In_ModelNameFullPath, out HTuple home_mat2D, out HTuple ModelPos, In_IsShowResult);
                 if (bRet && ModelPos.Length == 3)
                 {
                     Out_Hom_mat2D = home_mat2D;

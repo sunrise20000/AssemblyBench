@@ -1176,8 +1176,7 @@ namespace JPT_TosaTest.MotionCards
             //第一次需要先查询一下位置
             await Task.Run(() =>
             {
-                Thread.Sleep(5000);
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 20; i++)
                 {
                     Thread.Sleep(500);
                     UInt16? realValue = null;
@@ -1186,14 +1185,13 @@ namespace JPT_TosaTest.MotionCards
                         realValue = (UInt16)value;
                     }
                     OnOutputStateChanged?.Invoke(this, realValue);
-                    if (i == 9 || realValue.HasValue)
-                        break;
+                    for (int j = 1; j <= 12; j++)
+                    {
+                        CheckAxisState(Enumcmd.HOST_CMD_MOVE, j);
+                    }
                 }
 
-                for (int i = 1; i <= 12; i++)
-                {
-                    CheckAxisState(Enumcmd.HOST_CMD_MOVE, i);
-                }
+                
             });
            
         }

@@ -8,6 +8,10 @@ namespace JPT_TosaTest.Vision.ProcessStep
 {
     public class StepShowLineTop : VisionProcessStepBase
     {
+        public StepShowLineTop()
+        {
+            In_IsShowResult = true;
+        }
         public Tuple<double, double, double, double> In_Line1 { get; set; }
         public Tuple<double, double, double, double> In_Line2 { get; set; }
         public double In_PixGainFactor { get; set; }
@@ -36,7 +40,8 @@ namespace JPT_TosaTest.Vision.ProcessStep
                     if (hv_LineOutRow != null && hv_LineOutRow1 != null)
                     {
                         Out_Line = new Tuple<HTuple, HTuple, HTuple, HTuple>(hv_LineOutRow, hv_LineOutCol, hv_LineOutRow1, hv_LineOutCol1);
-                        HalconVision.Instance.DisplayLines(In_CamID, new List<Tuple<HTuple, HTuple, HTuple, HTuple>>() { Out_Line });
+                        if(In_IsShowResult)
+                            HalconVision.Instance.DisplayLines(In_CamID, new List<Tuple<HTuple, HTuple, HTuple, HTuple>>() { Out_Line });
                     }
                     return true;
                 }

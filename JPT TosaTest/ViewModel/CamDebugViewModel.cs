@@ -217,7 +217,7 @@ namespace JPT_TosaTest.ViewModel
 
 
 
-        private void AddFlag(ToolDataBase para)
+        private void AddFlag(ToolDataBase para, bool IsAdd=true)
         {
             try
             {
@@ -244,7 +244,8 @@ namespace JPT_TosaTest.ViewModel
                     In_ModelRow = FindModelTool.Out_ModelRow,
                     In_ModelCOl = FindModelTool.Out_ModelCol,
                     In_ModelPhi = FindModelTool.Out_ModelPhi,
-                    In_LineRoiPara = LineListString
+                    In_LineRoiPara = LineListString,
+                    In_IsShowResult = false
                 };
                 HalconVision.Instance.ProcessImage(FindLineTool);
 
@@ -256,9 +257,10 @@ namespace JPT_TosaTest.ViewModel
                 StepDrawFlag DrawFlagTool = new StepDrawFlag()
                 {
                     In_CamID = nCamID,
-                    In_Geometry = data.GeometryType,
+                    In_GeometryType = data.GeometryType,
                     In_HLine = LineListForDraw[0],
-                    In_VLine = LineListForDraw[1]
+                    In_VLine = LineListForDraw[1],
+                    In_IsAdd = IsAdd
                 };
 
                 HalconVision.Instance.ProcessImage(DrawFlagTool);
@@ -1041,6 +1043,17 @@ namespace JPT_TosaTest.ViewModel
                 AddFlag(para);
                 }); }
         }
+
+        public RelayCommand<ToolDataBase> SubFlagCommand
+        {
+            get
+            {
+                return new RelayCommand<ToolDataBase>(para => {
+                    AddFlag(para,false);
+                });
+            }
+        }
+
         public RelayCommand<ToolDataBase> ShowFlagCommand
         {
             get

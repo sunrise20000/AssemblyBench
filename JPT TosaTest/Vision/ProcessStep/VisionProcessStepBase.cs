@@ -12,6 +12,7 @@ namespace JPT_TosaTest.Vision.ProcessStep
     {
         public int In_CamID { get; set; }
         public HObject In_Image { get; set; } 
+        public bool In_IsShowResult { get; set; }
         public abstract bool Process();
     }
 }
