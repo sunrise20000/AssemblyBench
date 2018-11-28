@@ -68,6 +68,7 @@ namespace JPT_TosaTest.Vision.ProcessStep
                                                 out HTuple hv_PLineRow1, out HTuple hv_PLineCol1, out HTuple k1, out HTuple b1);                
                     //平行线
                     Out_Lines = new List<Tuple<HTuple, HTuple, HTuple, HTuple>> {new Tuple<HTuple, HTuple, HTuple, HTuple> (hv_PLineRow, hv_PLineCol, hv_PLineRow1, hv_PLineCol1) };
+
                     HalconVision.Instance.DisplayLines(In_CamID, Out_Lines);
                    // HalconVision.Instance.SetRefreshWindow(In_CamID,true);
                     //原始输入线

@@ -17,10 +17,17 @@ namespace JPT_TosaTest.Vision.ProcessStep
         public HObject Out_Region { get; set; }
         public override bool Process()
         {
-            HalconVision.Instance.FindTia0(In_Image, In_CamID, In_ModelRow, In_ModelCol, In_ModelPhi, out HObject RegionOut);
-            Out_Region = RegionOut;
+            try
+            {
+                HalconVision.Instance.FindTia0(In_Image, In_CamID, In_ModelRow, In_ModelCol, In_ModelPhi, out HObject RegionOut);
+                Out_Region = RegionOut;
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"寻找Tia0的时候失败:{ex.Message}");
+            }
         }
     }
 }

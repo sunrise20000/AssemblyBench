@@ -201,7 +201,7 @@ namespace JPT_TosaTest.Vision
         /// <param name="nCamID"></param>
         /// <param name="bDispose"></param>
         /// <param name="bContinus"></param>
-        public void GrabImage(int nCamID, bool bDispose = true, bool bContinus = false)
+        public void GrabImage(int nCamID, bool bDispose = true, bool bContinus = false, double RowLT=-1, double ColLT= -1, double RowRB=-1, double ColRB=-1)
         {
             if (nCamID < 0)
                 return;
@@ -237,10 +237,29 @@ namespace JPT_TosaTest.Vision
                     if (!SyncEvent.WaitOne(70))
                     {
                         foreach (var it in HwindowDic[nCamID])
-                            if (it.Value != -1)
+                            if (it.Value != -1) 
                             {
-                                //HOperatorSet.SetPart(it.Value, height/2-500, width/2-500, height/2+500, width/2+500);
-                                HOperatorSet.SetPart(it.Value, 0, 0, height, width);
+                                //是否缩放窗口
+                                //if (RowLT != -1 && ColLT != -1 && RowRB != -1 && ColRB != -1)
+                                //{
+                                //    //不想变形处理
+                                //    double PartHeight = Math.Abs(RowLT - RowRB);
+                                //    double PartWidth = Math.Abs(ColLT - ColRB);
+                                //    if (width.D / (double)PartWidth >= height.D / (double)PartHeight)
+                                //    {
+                                //        //左对齐修改Col
+                                //        ColRB = width / (height.D / (double)PartHeight) + ColLT;
+                                //    }
+                                //    else
+                                //    {
+                                //        RowLT = RowRB - width / (width.D / (double)PartWidth);
+                                //    }
+                                //    HOperatorSet.SetPart(it.Value, RowLT, ColLT, RowRB, ColRB);
+                                //}
+                                //else
+                                {
+                                    HOperatorSet.SetPart(it.Value, 0, 0, height, width);
+                                }
                                 HOperatorSet.DispObj(HoImageList[nCamID], it.Value);
                             }
                     }
@@ -712,7 +731,14 @@ namespace JPT_TosaTest.Vision
                 {
                     HOperatorSet.SetDraw(it.Value, "margin");
                     HOperatorSet.SetColor(it.Value, "green");
-                    HOperatorSet.DispObj(region, it.Value);
+                    if (Region != null)
+                        HOperatorSet.DispObj(region, it.Value);
+                    else
+                    {
+                        HOperatorSet.GenEmptyObj(out HObject EmptyRegion);
+                        HOperatorSet.DispObj(EmptyRegion, it.Value);
+                        EmptyRegion.Dispose();
+                    }
                 }
             }
 
@@ -1243,6 +1269,15 @@ namespace JPT_TosaTest.Vision
         {
             HOperatorSet.SetSystem("flush_graphic", bRefresh ? "true" : "false");
         }
+        
+        public void SetPart(int nCamID, HTuple RowLT, HTuple ColLT, HTuple RowRB, HTuple COlRB)
+        {
+            foreach (var it in HwindowDic[nCamID])
+            {
+                HOperatorSet.SetPart(it.Value, RowLT, ColLT, RowRB, COlRB);
+            }
+           // HwindowDic[nCamID]
+        }
         #endregion
 
         public bool PreCreateShapeModel(int nCamID, int MinThre, int MaxThre, EnumShapeModelType modelType, string regionFilePath, object regionIn = null)
@@ -1395,19 +1430,27 @@ namespace JPT_TosaTest.Vision
 
             }
         }
-        public void ZoomImage(int nCamID)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nCamID"></param>
+        /// <param name="Image"></param>
+        /// <param name="CenterRow"></param>
+        /// <param name="CenterCol"></param>
+        /// <param name="ScaleFactor"></param>
+        public void ZoomImageInScare(int nCamID,HObject Image,HTuple CenterRow, HTuple CenterCol,HTuple ScaleFactor)
         {
             HTuple Offset = 3;
-            HTuple WindowHandle = HwindowDic[nCamID][DebugWindowName];
-            HOperatorSet.GetPart(WindowHandle, out HTuple oldRow1, out HTuple oldCol1, out HTuple oldRow2, out HTuple oldCol2);
-            HOperatorSet.DrawRectangle1Mod(WindowHandle, oldRow1+Offset, oldCol1+Offset, oldRow2-Offset, oldCol2-Offset, out HTuple row1, out HTuple col1, out HTuple row2, out HTuple col2);
-            HOperatorSet.GenRectangle1(out HObject ZoomRectangle, row1, col1, row2, col2);
-            HOperatorSet.SetLineWidth(WindowHandle, 1);
-            HOperatorSet.SetDraw(WindowHandle, "margin");
-            HOperatorSet.SetColor(WindowHandle, "red");
-            HOperatorSet.SetPart(WindowHandle, row1, col1, row2, col2);
-            HOperatorSet.DispObj(HoImageList[nCamID], WindowHandle);
-            ZoomRectangle.Dispose();
+            HOperatorSet.GetImageSize(Image, out HTuple width, out HTuple height);
+            foreach (var it in HwindowDic[nCamID])
+            {
+                HOperatorSet.SetPart(it.Value, 
+                                    CenterRow - ScaleFactor * height/2, 
+                                    CenterCol - ScaleFactor * width/2, 
+                                    CenterRow + ScaleFactor * height/2, 
+                                    CenterCol + ScaleFactor * height/2);
+            }
+
         }
         public void ResetZoomImage(int nCamID)
         {

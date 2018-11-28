@@ -111,7 +111,7 @@ namespace JPT_TosaTest.WorkFlow
         }
         public bool Stop()
         {
-            ClearAllStep();
+            //ClearAllStep();
             SubStep = -1;
             cts.Cancel();
             return true;

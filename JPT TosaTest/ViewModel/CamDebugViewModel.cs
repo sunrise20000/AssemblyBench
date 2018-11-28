@@ -1073,7 +1073,7 @@ namespace JPT_TosaTest.ViewModel
             {
                 return new RelayCommand(() => {
                     //CurrentSelectedCamera
-                    HalconVision.Instance.ZoomImage(CurrentSelectedCamera);
+                    //HalconVision.Instance.ZoomImage(CurrentSelectedCamera);
                 });
             }
         }
