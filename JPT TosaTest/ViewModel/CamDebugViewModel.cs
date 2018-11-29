@@ -94,6 +94,11 @@ namespace JPT_TosaTest.ViewModel
             EdgeFileCollect = new ObservableCollection<string>();
             UpdateToolFileCollect();
 
+
+            //初始化模板类型
+            ModelTypeCollect = new ObservableCollection<string>();
+            ModelTypeCollect.Add(EnumShapeModelType.Shape.ToString());
+            ModelTypeCollect.Add(EnumShapeModelType.XLD.ToString());
         }
 
 
@@ -180,6 +185,7 @@ namespace JPT_TosaTest.ViewModel
                     case EnumToolType.LineTool:
                         {
                             var ToolData = para as LineToolData;
+                                
                             HalconVision.Instance.Debug_FindLine(0, ToolData.Polarity, ToolData.SelectType, ToolData.Contrast, ToolData.CaliperNum);
                             return true;
                         }
@@ -280,7 +286,9 @@ namespace JPT_TosaTest.ViewModel
                 StepFindModel FindTiaModelStep = new StepFindModel()
                 {
                     In_CamID = 0,
-                    In_ModelNameFullPath = ModelFulllPathFileName
+                    In_ModelNameFullPath = ModelFulllPathFileName,
+                    In_MinScaleThreshold=39,
+                    In_MaxScaleThreshold=81
                 };
                 HalconVision.Instance.ProcessImage(FindTiaModelStep);
 
@@ -440,7 +448,11 @@ namespace JPT_TosaTest.ViewModel
             get;
             set;
         }
-
+        public ObservableCollection<string> ModelTypeCollect
+        {
+            get;
+            set;
+        }
         /// <summary>
         /// 当前选择的是哪个相机
         /// </summary>
@@ -527,6 +539,11 @@ namespace JPT_TosaTest.ViewModel
         {
             get;
             set;
+        }
+
+        public int SelectedModelTypeIndex
+        {
+            get;set;
         }
         #endregion
 
@@ -711,8 +728,16 @@ namespace JPT_TosaTest.ViewModel
                             {
                                 string strRegionPath = $"VisionData\\Model\\{item.StrFullName}.reg";
                                 object region = HalconVision.Instance.ReadRegion(strRegionPath);
-                                HalconVision.Instance.SaveShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, strRegionPath, region);
-                                UpdateModelCollect(nCamID);   //只更新这一个相机的Roi文件
+                                if (Enum.IsDefined(typeof(EnumShapeModelType), SelectedModelTypeIndex))
+                                {
+
+                                    HalconVision.Instance.SaveShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, strRegionPath, region);
+                                    UpdateModelCollect(nCamID);   //只更新这一个相机的Roi文件
+                                }
+                                else
+                                {
+                                    UC_MessageBox.ShowMsgBox("请选择模板类型","错误",MsgType.Error);
+                                }
                             }
                         }
                     }
@@ -749,7 +774,10 @@ namespace JPT_TosaTest.ViewModel
                     StepFindModel FindModelStep = new StepFindModel()
                     {
                         In_CamID = 0,
-                        In_ModelNameFullPath = strModelFileName
+                        In_ModelNameFullPath = strModelFileName,
+                        In_MinScaleThreshold=40,
+                        In_MaxScaleThreshold=80,
+                        In_IsShowResult=true
                     };
                     HalconVision.Instance.ProcessImage(FindModelStep);
                 });
@@ -999,8 +1027,10 @@ namespace JPT_TosaTest.ViewModel
                             case EnumToolType.LineTool:
                                 {
                                     var Data = para as LineToolData;
-                                    if(HalconVision.Instance.LineRoiData!="")
+                                    if (HalconVision.Instance.LineRoiData != "")
+                                    {
                                         HalconVision.Instance.Debug_FindLine(0, Data.Polarity, Data.SelectType, Data.Contrast, Data.CaliperNum);
+                                    }
                                 }
                                 break;
                             case EnumToolType.CircleTool:

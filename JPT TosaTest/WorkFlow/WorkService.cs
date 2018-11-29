@@ -420,7 +420,9 @@ namespace JPT_TosaTest.WorkFlow
                                 Tool_StepFindHsgModel = new StepFindModel()
                                 {
                                     In_CamID = 0,
-                                    In_ModelNameFullPath = ModelFulllPathFileName
+                                    In_ModelNameFullPath = ModelFulllPathFileName,
+                                    In_MinScaleThreshold=40,
+                                    In_MaxScaleThreshold=80
                                 };
                                 HalconVision.Instance.ProcessImage(Tool_StepFindHsgModel);
                                 PartHsg = new Tuple<double, double, double, double>(Tool_StepFindHsgModel.Out_ModelRow.D-238, 
@@ -722,7 +724,7 @@ namespace JPT_TosaTest.WorkFlow
                     case 0: //Z轴抬起
                         MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
                         IOCard.WriteIoOutBit(VAC_PLC, false);
-                        Thread.Sleep(200);
+                        Thread.Sleep(5000);
                         MotionCard.MoveAbs(AXIS_Z, 500, 100, 0);
                         SubStep = 1;
                         break;
@@ -766,7 +768,9 @@ namespace JPT_TosaTest.WorkFlow
                 In_ModelCOl = Tool_StepFindHsgModel.Out_ModelCol,
                 In_ModelPhi = Tool_StepFindHsgModel.Out_ModelPhi,
                 In_Hom_mat2D = Tool_StepFindHsgModel.Out_Hom_mat2D,
-                In_LineRoiPara = LineList
+                In_LineRoiPara = LineList,
+                In_MinScaleThreshold=40,
+                In_MaxScaleThreshold=80
             };
             HalconVision.Instance.ProcessImage(Tool_StepFindLineBottomByModel);
             BottomLines = new List<object>();
@@ -820,7 +824,9 @@ namespace JPT_TosaTest.WorkFlow
                 In_Hom_mat2D = Tool_StepFindHsgModel.Out_Hom_mat2D,
                 In_ModelRow = Tool_StepFindHsgModel.Out_ModelRow,
                 In_ModelCOl = Tool_StepFindHsgModel.Out_ModelCol,
-                In_ModelPhi = Tool_StepFindHsgModel.Out_ModelPhi
+                In_ModelPhi = Tool_StepFindHsgModel.Out_ModelPhi,
+                In_MinScaleThreshold=40,
+                In_MaxScaleThreshold=80
             };
             HalconVision.Instance.ProcessImage(Tool_StepFindLineTopByModel);
 
@@ -871,7 +877,9 @@ namespace JPT_TosaTest.WorkFlow
             StepFindModel FindTiaModelStep = new StepFindModel()
             {
                 In_CamID = 0,
-                In_ModelNameFullPath = ModelFulllPathFileName
+                In_ModelNameFullPath = ModelFulllPathFileName,
+                In_MinScaleThreshold=40,
+                In_MaxScaleThreshold=80
             };
             HalconVision.Instance.ProcessImage(FindTiaModelStep);
 
@@ -923,7 +931,9 @@ namespace JPT_TosaTest.WorkFlow
             StepFindModel FindTiaModelStep = new StepFindModel()
             {
                 In_CamID = 0,
-                In_ModelNameFullPath = ModelFulllPathFileName
+                In_ModelNameFullPath = ModelFulllPathFileName,
+                In_MinScaleThreshold=40,
+                In_MaxScaleThreshold=80
             };
             HalconVision.Instance.ProcessImage(FindTiaModelStep);
 

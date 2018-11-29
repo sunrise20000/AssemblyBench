@@ -46,7 +46,7 @@ namespace JPT_TosaTest.UserCtrl
         public UC_CameraDebug()
         {
             InitializeComponent();
-            
+           
         }
         private void Cb_Cameras_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -148,5 +148,6 @@ namespace JPT_TosaTest.UserCtrl
         {
             Console.WriteLine(e.Delta);
         }
+
     }
 }

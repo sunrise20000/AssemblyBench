@@ -216,6 +216,7 @@
     <Compile Include="Config\HardwareManager\AxisSetting.cs" />
     <Compile Include="Model\ToolData\CircleToolData.cs" />
     <Compile Include="Model\ToolData\LineToolData.cs" />
+    <Compile Include="Model\ToolData\ModelToolData.cs" />
     <Compile Include="Model\ToolData\PairToolData.cs" />
     <Compile Include="Model\ToolData\FlagToolData.cs" />
     <Compile Include="Model\ToolData\ToolDataBase.cs" />

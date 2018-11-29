@@ -13,7 +13,8 @@ namespace JPT_TosaTest.Vision.ProcessStep
             In_IsShowResult = true;
         }
         public string In_ModelNameFullPath { get; set; }
-
+        public double In_MinScaleThreshold { get; set; }
+        public double In_MaxScaleThreshold { get; set; }
 
         /// <summary>
         /// 输出
@@ -28,7 +29,7 @@ namespace JPT_TosaTest.Vision.ProcessStep
             try
             {
                 bool bRet = false;
-                bRet=HalconVision.Instance.FindModelAndGetData(In_Image, In_ModelNameFullPath, out HTuple home_mat2D, out HTuple ModelPos, In_IsShowResult);
+                bRet=HalconVision.Instance.FindModelAndGetData(In_Image, In_ModelNameFullPath, out HTuple home_mat2D, out HTuple ModelPos, In_IsShowResult,In_MinScaleThreshold,In_MaxScaleThreshold);
                 if (bRet && ModelPos.Length == 3)
                 {
                     Out_Hom_mat2D = home_mat2D;

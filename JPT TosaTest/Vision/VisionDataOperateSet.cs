@@ -12,6 +12,7 @@ namespace JPT_TosaTest.Vision
         CircleTool,
         PairTool,
         FlagTool,
+        ModelTool
     }
     public enum Enum_REGION_OPERATOR { ADD, SUB }
     public enum Enum_REGION_TYPE { RECTANGLE, CIRCLE }

@@ -18,6 +18,9 @@ namespace JPT_TosaTest.Vision.ProcessStep
         public double In_ModelRow { get; set; } 
         public double In_ModelCOl { get; set; }
         public double In_ModelPhi { get; set; }
+        public double In_MinScaleThreshold { get; set; }
+        public double In_MaxScaleThreshold { get; set; }
+
         public List<string> In_LineRoiPara { get; set; }
 
         /// <summary>
@@ -33,7 +36,10 @@ namespace JPT_TosaTest.Vision.ProcessStep
                 ModelPos[0] = In_ModelRow;
                 ModelPos[1] = In_ModelCOl;
                 ModelPos[2] = In_ModelPhi;
-                bool bRet = HalconVision.Instance.FindLineBasedModelRoi(In_Image, In_LineRoiPara, (HTuple)In_Hom_mat2D, ModelPos, out List<object> lineList,In_IsShowResult);   //只需要显示
+
+                HalconVision.Instance.scale_image_range(In_Image, out HObject ImageScaled, In_MinScaleThreshold, In_MaxScaleThreshold);
+                bool bRet = HalconVision.Instance.FindLineBasedModelRoi(ImageScaled, In_LineRoiPara, (HTuple)In_Hom_mat2D, ModelPos, out List<object> lineList,In_IsShowResult);   //只需要显示
+                ImageScaled.Dispose();
                 if (Out_Lines == null)
                     Out_Lines = new List<Tuple<HTuple, HTuple, HTuple, HTuple>>();
                 if (bRet && lineList != null && lineList.Count > 0)

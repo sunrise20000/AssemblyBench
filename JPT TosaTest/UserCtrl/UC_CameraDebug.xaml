@@ -311,8 +311,10 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{DynamicResource CameraPage_ModelNum}" VerticalAlignment="Center" Margin="2" HorizontalAlignment="Center"/>
-                                            <TextBox Grid.Column="1" Margin="3" FontSize="15" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="模板类型" VerticalAlignment="Center" Margin="2" HorizontalAlignment="Center"/>
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding ModelTypeCollect}" SelectedIndex="{Binding SelectedModelTypeIndex}"/>
+
+
                                         </Grid>
                                         <Grid Grid.Row="3" Grid.Column="1">
                                             <Grid.ColumnDefinitions>
