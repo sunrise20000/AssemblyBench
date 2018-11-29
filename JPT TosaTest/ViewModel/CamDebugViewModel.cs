@@ -97,8 +97,8 @@ namespace JPT_TosaTest.ViewModel
 
             //初始化模板类型
             ModelTypeCollect = new ObservableCollection<string>();
-            ModelTypeCollect.Add(EnumShapeModelType.Shape.ToString());
-            ModelTypeCollect.Add(EnumShapeModelType.XLD.ToString());
+            ModelTypeCollect.Add(EnumShapeModelType.Closed.ToString());
+            ModelTypeCollect.Add(EnumShapeModelType.Open.ToString());
         }
 
 
@@ -609,7 +609,7 @@ namespace JPT_TosaTest.ViewModel
                             string strRegionTemp = $"VisionData\\ModelTemp\\Cam{nCamID}_{Window_AddRoiModel.ProfileValue}.reg";
                             FileHelper.DeleteAllFileInDirectory($"VisionData\\ModelTemp");
                             File.OpenWrite(strRegionTemp);
-                            HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, strRegionTemp);
+                            HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, strRegionTemp);
 
                         }
 
@@ -634,7 +634,7 @@ namespace JPT_TosaTest.ViewModel
                             {
                                 string regionPath = $"VisionData\\Model\\{item.StrFullName}.reg";
                                 HalconVision.Instance.DrawRoi(nCamID, EnumRoiType.ModelRegionReduce, out object region, regionPath);    //有模板的时候直接以名称存储
-                                HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, regionPath, region);
+                                HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, regionPath, region);
                             }
                         }
                     }
@@ -644,7 +644,7 @@ namespace JPT_TosaTest.ViewModel
                         {
                             string regionPath = $"VisionData\\ModelTemp\\{fileList[0]}.reg";
                             HalconVision.Instance.DrawRoi(nCamID, EnumRoiType.ModelRegionReduce, out object region, regionPath);       //没有模板的时候就按照相机存储
-                            HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, regionPath, region);    //传入Region
+                            HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, regionPath, region);    //传入Region
                         }
                     }
                 });
@@ -666,7 +666,8 @@ namespace JPT_TosaTest.ViewModel
                             {
                                 string strRegionPath = $"VisionData\\Model\\{item.StrFullName}.reg";
                                 object region = HalconVision.Instance.ReadRegion(strRegionPath);
-                                HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, strRegionPath, region);
+                                HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, strRegionPath, region);
+
                             }
                         }
                     }
@@ -676,7 +677,7 @@ namespace JPT_TosaTest.ViewModel
                         {
                             string strRegionPath = $"VisionData\\ModelTemp\\{fileList[0]}.reg";
                             object region = HalconVision.Instance.ReadRegion(strRegionPath);
-                            HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, strRegionPath, region);    //传入Region
+                            HalconVision.Instance.PreCreateShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, strRegionPath, region);    //传入Region
                         }
                     }
                 });
@@ -748,7 +749,7 @@ namespace JPT_TosaTest.ViewModel
                             string strRegionPath = $"VisionData\\ModelTemp\\{fileList[0]}.reg";
                             object region = HalconVision.Instance.ReadRegion(strRegionPath);
                             FileHelper.DeleteAllFileInDirectory($"VisionData\\ModelTemp");  //删除Temp文件
-                            HalconVision.Instance.SaveShapeModel(nCamID, MinThre, MaxThre, EnumShapeModelType.XLD, $"VisionData\\Model\\{fileList[0]}.reg", region);    //传入Region
+                            HalconVision.Instance.SaveShapeModel(nCamID, MinThre, MaxThre, (EnumShapeModelType)SelectedModelTypeIndex, $"VisionData\\Model\\{fileList[0]}.reg", region);    //传入Region
                             UpdateModelCollect(nCamID);   //只更新这一个相机的Roi文件
                         }
                     }
@@ -771,12 +772,20 @@ namespace JPT_TosaTest.ViewModel
                         return;
                     }
                     string strModelFileName = $"VisionData\\Model\\Cam{nCamID}_{item.StrName}.shm";    //Model
+                    double Min = 0;
+                    double Max = 255;
+                    if (SelectedModelTypeIndex == 1)
+                    {
+                        Min = 40;
+                        Max = 80;
+                    }
+
                     StepFindModel FindModelStep = new StepFindModel()
                     {
                         In_CamID = 0,
                         In_ModelNameFullPath = strModelFileName,
-                        In_MinScaleThreshold=40,
-                        In_MaxScaleThreshold=80,
+                        In_MinScaleThreshold=Min,
+                        In_MaxScaleThreshold=Max,
                         In_IsShowResult=true
                     };
                     HalconVision.Instance.ProcessImage(FindModelStep);

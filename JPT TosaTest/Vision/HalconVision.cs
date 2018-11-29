@@ -1023,7 +1023,7 @@ namespace JPT_TosaTest.Vision
                 HOperatorSet.ReadTuple($"{strModelListDot[0]}.tup", out HTuple hv_ModelPos);
                 HOperatorSet.ReadShapeModel($"{strModelListDot[0]}.shm", out HTuple hv_ModelID);
                 scale_image_range(image, out HObject ImageScaled, MinScaleThresh, MaxScaleThresh);
-                HOperatorSet.FindShapeModel(ImageScaled, hv_ModelID, (new HTuple(-20)).TupleRad(), (new HTuple(20)).TupleRad(), 0.5, 1, 0.5, "least_squares", 0, 0.9, out HTuple hv_Row1, out HTuple hv_Column1, out HTuple hv_Angle, out HTuple hv_Score);
+                HOperatorSet.FindShapeModel(ImageScaled, hv_ModelID, (new HTuple(-20)).TupleRad(), (new HTuple(20)).TupleRad(), 0.4, 1, 0.5, "least_squares", 0, 0.9, out HTuple hv_Row1, out HTuple hv_Column1, out HTuple hv_Angle, out HTuple hv_Score);
                 HOperatorSet.ClearShapeModel(hv_ModelID);
                 ImageScaled.Dispose();
 
@@ -1303,13 +1303,17 @@ namespace JPT_TosaTest.Vision
                 HTuple window = HwindowDic[nCamID][DebugWindowName];
                 switch (modelType)
                 {
-                    case EnumShapeModelType.Gray:
+                    case EnumShapeModelType.Closed:
+                        {
+                            HObject region = regionIn as HObject;
+                            PreProcessShapeModeClosed(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, true);
+                        }
                         break;
-                    case EnumShapeModelType.Shape:
-                        break;
-                    case EnumShapeModelType.XLD:
-                        HObject region = regionIn as HObject;
-                        return PreProcessShapeMode(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, true);
+                    case EnumShapeModelType.Open:
+                        {
+                            HObject region = regionIn as HObject;
+                            return PreProcessShapeMode(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, true);
+                        }
                     default:
                         return false;
                 }
@@ -1325,11 +1329,8 @@ namespace JPT_TosaTest.Vision
                 HTuple window = HwindowDic[nCamID][DebugWindowName];
                 switch (modelType)
                 {
-                    case EnumShapeModelType.Gray:
-                        break;
-                    case EnumShapeModelType.Shape:
-                        break;
-                    case EnumShapeModelType.XLD:
+                    case EnumShapeModelType.Open:
+                    case EnumShapeModelType.Closed:
                         HObject region = regionIn as HObject;
                         return PreProcessShapeMode(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, false);
                     default:
@@ -1874,6 +1875,18 @@ namespace JPT_TosaTest.Vision
 
             return;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ImageIn"></param>
+        /// <param name="window"></param>
+        /// <param name="MinThre"></param>
+        /// <param name="MaxThre"></param>
+        /// <param name="RegionDomain"></param>
+        /// <param name="strRegionPath"></param>
+        /// <param name="bPreView"></param>
+        /// <param name="ModelType">Shape未封闭，XLD封闭的</param>
+        /// <returns></returns>
         private bool PreProcessShapeMode(HObject ImageIn, HTuple window, HTuple MinThre, HTuple MaxThre, HObject RegionDomain, string strRegionPath, bool bPreView = true)
         {
             try
@@ -1934,9 +1947,81 @@ namespace JPT_TosaTest.Vision
                 return false;
             }
         }
+        private bool PreProcessShapeModeClosed(HObject ImageIn, HTuple window, HTuple MinThre, HTuple MaxThre, HObject RegionDomain, string strRegionPath, bool bPreView = true)
+        {
+            try
+            {
+                if (RegionDomain == null)
+                    HOperatorSet.GetDomain(ImageIn, out RegionDomain);
+
+                // Local iconic variables 
+                HObject ho_ImageReduced, ho_Regions2, ho_RegionFillUp1;
+                HObject ho_Contours1;
+                HObject emptObject = null;
+                // Local control variables 
+                HTuple hv_Width, hv_Height, hv_ModelID;
+
+                // Initialize local and output iconic variables 
+                HOperatorSet.GenEmptyObj(out ho_ImageReduced);
+                HOperatorSet.GenEmptyObj(out ho_Regions2);
+                HOperatorSet.GenEmptyObj(out ho_RegionFillUp1);
+                HOperatorSet.GenEmptyObj(out ho_Contours1);
+
+
+                HOperatorSet.GetImageSize(ImageIn, out hv_Width, out hv_Height);
+                ho_ImageReduced.Dispose();
+                HOperatorSet.ReduceDomain(ImageIn, RegionDomain, out ho_ImageReduced);
+
+                ho_Regions2.Dispose();
+                HOperatorSet.Threshold(ho_ImageReduced, out ho_Regions2, MinThre, MaxThre);
+                ho_RegionFillUp1.Dispose();
+                HOperatorSet.FillUpShape(ho_Regions2, out ho_RegionFillUp1, "area", 1, 500);
+                ho_Contours1.Dispose();
+                HOperatorSet.GenContourRegionXld(ho_RegionFillUp1, out ho_Contours1, "border");
+                if (bPreView == false)
+                {
+                    HOperatorSet.CreateShapeModelXld(ho_Contours1, "auto", (new HTuple(0)).TupleRad(), (new HTuple(360)).TupleRad(), "auto", "auto", "ignore_local_polarity", 5, out hv_ModelID);
+                    HOperatorSet.FindShapeModel(ImageIn, hv_ModelID, (new HTuple(0)).TupleRad(), (new HTuple(360)).TupleRad(), 0.5, 1, 0.5, "least_squares", 0, 0.9, out HTuple hv_Row, out HTuple hv_Column, out HTuple hv_Angle, out HTuple hv_Score);
+
+                    HTuple hv_ModelPos = new HTuple();
+                    hv_ModelPos[0] = hv_Row;
+                    hv_ModelPos[1] = hv_Column;
+                    hv_ModelPos[2] = hv_Angle;
+                    string[] strList = strRegionPath.Split('.');
+                    HOperatorSet.WriteShapeModel(hv_ModelID, $"{strList[0]}.shm");
+                    HOperatorSet.WriteTuple(hv_ModelPos, $"{strList[0]}.tup");
+                    HOperatorSet.WriteRegion(RegionDomain, $"{strList[0]}.reg");
+                }
+
+                HOperatorSet.SetDraw(window, "fill");
+                HOperatorSet.SetColor(window, "red");
+                HOperatorSet.SetSystem("flush_graphic", "false");
+                HOperatorSet.ClearWindow(window);
+                HOperatorSet.DispObj(ImageIn, window);
+                HOperatorSet.DispObj(ho_Contours1, window); //显示模板轮廓
+                HOperatorSet.SetSystem("flush_graphic", "true");
+                HOperatorSet.GenEmptyObj(out emptObject);
+                HOperatorSet.DispObj(emptObject, window);
+
+
+                emptObject.Dispose();
+                RegionDomain.Dispose();
+                ho_ImageReduced.Dispose();
+                ho_Regions2.Dispose();
+                ho_RegionFillUp1.Dispose();
+                ho_Contours1.Dispose();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+
         // Chapter: Filter / Arithmetic
         // Short Description: Scale the gray values of an image from the interval [Min,Max] to [0,255]
-       
+
         private void Debug_DrawRectangle2(HTuple WindowHandle, out HTuple Row, out HTuple Col, out HTuple Phi, out HTuple L1, out HTuple L2)
         {
             Row = Col = Phi = L1 = L2 = 0;

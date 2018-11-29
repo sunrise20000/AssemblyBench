@@ -37,9 +37,8 @@ namespace JPT_TosaTest.Vision
     }
     public enum EnumShapeModelType
     {
-        Gray,
-        Shape,
-        XLD
+        Closed,
+        Open
     };
     public enum EnumRoiType
     {
