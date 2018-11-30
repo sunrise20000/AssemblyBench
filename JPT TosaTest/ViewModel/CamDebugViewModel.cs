@@ -287,8 +287,8 @@ namespace JPT_TosaTest.ViewModel
                 {
                     In_CamID = 0,
                     In_ModelNameFullPath = ModelFulllPathFileName,
-                    In_MinScaleThreshold=39,
-                    In_MaxScaleThreshold=81
+                    In_MinScaleThreshold=0,
+                    In_MaxScaleThreshold=255
                 };
                 HalconVision.Instance.ProcessImage(FindTiaModelStep);
 

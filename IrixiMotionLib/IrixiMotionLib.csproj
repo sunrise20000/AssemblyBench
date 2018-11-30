@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AxisStateChangeArgs.cs" />
     <Compile Include="IrixiCommand\Irixi_HOST_CMD_GET_ERR.cs" />
     <Compile Include="IrixiCommand\Irixi_HOST_CMD_CLEAR_MEM.cs" />
     <Compile Include="IrixiCommand\Irixi_CommandEnum.cs" />

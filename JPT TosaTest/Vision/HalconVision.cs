@@ -940,14 +940,25 @@ namespace JPT_TosaTest.Vision
             HOperatorSet.GenRectangle1(out ho_Rectangle, ModelRow-134, ModelCol-1349, ModelRow+62, ModelCol-379);
             ho_ImageReduced.Dispose();
             HOperatorSet.ReduceDomain(Image, ho_Rectangle, out ho_ImageReduced);
+            HOperatorSet.ScaleImageMax(ho_ImageReduced, out HObject ImageScaleMax);
             ho_Regions.Dispose();
-            HOperatorSet.Threshold(ho_ImageReduced, out ho_Regions, 0, 20);
+            HOperatorSet.Threshold(ImageScaleMax, out ho_Regions, 0, 40);
+            ImageScaleMax.Dispose();
             ho_ConnectedRegions.Dispose();
             HOperatorSet.Connection(ho_Regions, out ho_ConnectedRegions);
+
             ho_SelectedRegions.Dispose();
             HOperatorSet.SelectShape(ho_ConnectedRegions, out ho_SelectedRegions, "area", "and", 2201.39, 4500);
             ho_SelectedRegions1.Dispose();
             HOperatorSet.SelectShape(ho_SelectedRegions, out ho_SelectedRegions1, "height","and", 20, 79.94);
+            if (ho_SelectedRegions1.CountObj() != 3)
+            {
+                foreach (var it in HwindowDic[nCamID])
+                {
+                    HOperatorSet.SetColor(it.Value, "red");
+                    disp_message(it.Value, "未找到足够多的区域完成计算", "window", 90, 0, "red", "true");
+                }
+            }
             ho_SortedRegions.Dispose();
             HOperatorSet.SortRegion(ho_SelectedRegions1, out ho_SortedRegions, "character", "true", "row");
 
@@ -980,7 +991,7 @@ namespace JPT_TosaTest.Vision
             {
                 ho_Rectangle1.Dispose();
                 HOperatorSet.GenRectangle2(out ho_Rectangle1, hv_NewRow - ((2 * (hv_Index - 1)) * hv_DeltaRow),
-                    hv_NewCol - ((2 * (hv_Index - 1)) * hv_DeltaCol), hv_PhiMean, hv_L1Mean - 60, 1000);
+                    hv_NewCol - ((2 * (hv_Index - 1)) * hv_DeltaCol)+3, hv_PhiMean, hv_L1Mean - 60, 1000);
                 HOperatorSet.Union2(RegionOut, ho_Rectangle1, out RegionOut);
             }
             if (IsShowResult)
@@ -1330,9 +1341,16 @@ namespace JPT_TosaTest.Vision
                 switch (modelType)
                 {
                     case EnumShapeModelType.Open:
+                        {
+                            HObject region = regionIn as HObject;
+                            PreProcessShapeMode(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, false);
+                        }
+                        break;
                     case EnumShapeModelType.Closed:
-                        HObject region = regionIn as HObject;
-                        return PreProcessShapeMode(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, false);
+                        {
+                            HObject region = regionIn as HObject;
+                            return PreProcessShapeModeClosed(HoImageList[nCamID], window, MinThre, MaxThre, region, regionFilePath, false);
+                        }
                     default:
                         return false;
                 }
@@ -1974,10 +1992,10 @@ namespace JPT_TosaTest.Vision
 
                 ho_Regions2.Dispose();
                 HOperatorSet.Threshold(ho_ImageReduced, out ho_Regions2, MinThre, MaxThre);
-                ho_RegionFillUp1.Dispose();
-                HOperatorSet.FillUpShape(ho_Regions2, out ho_RegionFillUp1, "area", 1, 500);
-                ho_Contours1.Dispose();
-                HOperatorSet.GenContourRegionXld(ho_RegionFillUp1, out ho_Contours1, "border");
+                //ho_RegionFillUp1.Dispose();
+                //HOperatorSet.FillUpShape(ho_Regions2, out ho_RegionFillUp1, "area", 1, 500);
+                //ho_Contours1.Dispose();
+                HOperatorSet.GenContourRegionXld(ho_Regions2, out ho_Contours1, "border");
                 if (bPreView == false)
                 {
                     HOperatorSet.CreateShapeModelXld(ho_Contours1, "auto", (new HTuple(0)).TupleRad(), (new HTuple(360)).TupleRad(), "auto", "auto", "ignore_local_polarity", 5, out hv_ModelID);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using JPT_TosaTest.Communication;
 using JPT_TosaTest.Config.HardwareManager;
-using JPT_TosaTest.MotionCards;
+using IrixiMotionLib;
 
 namespace JPT_TosaTest.IOCards
 {

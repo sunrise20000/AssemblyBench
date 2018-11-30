@@ -9,6 +9,7 @@ using JPT_TosaTest.Communication;
 using JPT_TosaTest.Config.HardwareManager;
 using JPT_TosaTest.MotionCards.IrixiCommand;
 using AxisParaLib;
+using IrixiMotionLib;
 
 
 
@@ -379,20 +380,20 @@ namespace JPT_TosaTest.MotionCards
             return "未定义错误类型";
         }
 
-        private void OnIrixiAxisStateChanged(object sender, Tuple<byte, AxisArgs> e)
+        private void OnIrixiAxisStateChanged(object sender, AxisStateChangeArgs e)
         {
-            int AxisNo = e.Item1 - 1;
-            AxisArgsList[AxisNo].CurAbsPos = e.Item2.CurAbsPos;
-            AxisArgsList[AxisNo].IsBusy = e.Item2.IsBusy;
-            AxisArgsList[AxisNo].IsHomed = e.Item2.IsHomed;
-            AxisArgsList[AxisNo].IsInRequest = e.Item2.IsInRequest;
-            OnAxisStateChanged?.Invoke(this, e.Item1 - 1, AxisArgsList[AxisNo]);
-            if (AxisArgsList[AxisNo].ErrorCode != e.Item2.ErrorCode)
+            int AxisNo = e.AxisNo - 1;
+            AxisArgsList[AxisNo].CurAbsPos = e.AxisState.CurAbsPos;
+            AxisArgsList[AxisNo].IsBusy = e.AxisState.IsBusy;
+            AxisArgsList[AxisNo].IsHomed = e.AxisState.IsHomed;
+            AxisArgsList[AxisNo].IsInRequest = e.AxisState.IsInRequest;
+            OnAxisStateChanged?.Invoke(this, e.AxisNo - 1, AxisArgsList[AxisNo]);
+            if (AxisArgsList[AxisNo].ErrorCode != e.AxisState.ErrorCode)
             {
-                AxisArgsList[AxisNo].ErrorCode = e.Item2.ErrorCode;
-                if (e.Item2.ErrorCode != 0)
+                AxisArgsList[AxisNo].ErrorCode = e.AxisState.ErrorCode;
+                if (e.AxisState.ErrorCode != 0)
                 {
-                    OnErrorOccured?.Invoke(this, e.Item2.ErrorCode, ParseErrorCode(e.Item2.ErrorCode));
+                    OnErrorOccured?.Invoke(this, e.AxisState.ErrorCode, ParseErrorCode(e.AxisState.ErrorCode));
                 }
             }
         }

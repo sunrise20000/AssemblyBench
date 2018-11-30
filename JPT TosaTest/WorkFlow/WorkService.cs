@@ -298,7 +298,7 @@ namespace JPT_TosaTest.WorkFlow
                         break;
                     case 4: //下降PT_Z轴//粗略下降
                         MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
-                        MotionCard.MoveAbs(AXIS_Z, 500, 100, PtLeftTop[PT_Z]-3);
+                        MotionCard.MoveAbs(AXIS_Z, 500, 100, PtLeftTop[PT_Z]-1);
                         SubStep = 5;
                         break;
                     case 5:
@@ -513,27 +513,57 @@ namespace JPT_TosaTest.WorkFlow
                 {
                     switch (SubStep)
                     {
+
+
                         case 0: //移动CY到工作平面
-                            StartMonitor(0, EnumRTShowType.Tia, true);
                             MotionCard.MoveAbs(AXIS_CY, 1000, 10, PtDropDown_PLC[PT_CY]);
                             SubStep = 1;
                             break;
                         case 1: //移动CZ到工作平面
                             if (MotionCard.IsNormalStop(AXIS_CY))
                             {
-                                MotionCard.MoveAbs(AXIS_CZ, 1000, 10, PtDropDown_PLC[PT_CZ]);
+                                MotionCard.MoveAbs(AXIS_CZ, 1000, 10, PtCamBottom_Support[PT_CZ]);
                                 SubStep = 2;
                             }
                             break;
+
                         case 2:
+                            if (MotionCard.IsNormalStop(AXIS_CZ))
+                            {
+                                SubStep = 3;
+                            }
+                            break;
+                        //去找Tia的Model和基准线，并画出region
+                        case 3:
+                            lock (MonitorLock)
+                            {
+                                ShowInfo("寻找Tia标记");
+                                if (TiaFlag == null)
+                                {
+                                    Thread.Sleep(200);
+                                    lock (MonitorLock)
+                                    {
+                                        HalconVision.Instance.GrabImage(0);
+                                        FindLineTia0();
+                                        Thread.Sleep(1000);
+                                    }
+                                }
+                                else
+                                    HalconVision.Instance.ShowRoi(0, TiaFlag);
+                            }
+                            StartMonitor(0, EnumRTShowType.Tia, true);
+                            SubStep = 5;
+                            break;
+
+                        case 5:
                             if (MotionCard.IsNormalStop(AXIS_CY))
                             {
                                 Thread.Sleep(200);
                                 ShowInfo("(1/3)请调整PLC的位置，完毕后点击【PLC按键】");
-                                SubStep = 3;
+                                SubStep = 6;
                             }
                             break;
-                        case 3: //开始拍照并显示
+                        case 6: //开始拍照并显示
                             if (GetCurStepCount() == 0)   //要自动下降贴合PLC
                             {
                                 ShowInfo("(2/3)请先调整PLC的位置，完毕后点击【PLC按键】自动贴合");
@@ -541,33 +571,33 @@ namespace JPT_TosaTest.WorkFlow
                                
                                 MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
                                 MotionCard.MoveAbs(AXIS_Z, 500, 100, PtPreFitPos_PLC[PT_Z]);
-                                SubStep = 4;
+                                SubStep = 7;
                             }
                             break;
-                        case 4: //将相机移动到下表面 
+                        case 7: //将相机移动到下表面 
                             MotionCard.MoveAbs(AXIS_CZ, 1000, 10, PtCamBottom_Support[PT_CZ]);
-                            SubStep = 5;
+                            SubStep = 8;
                             break;
-                        case 5: //保持CY在DropDown处
+                        case 8: //保持CY在DropDown处
                             if (MotionCard.IsNormalStop(AXIS_CZ))
                             {
                                 MotionCard.MoveAbs(AXIS_CY, 1000, 10, PtDropDown_PLC[PT_CY]);
-                                SubStep = 6;
+                                SubStep = 9;
                             }
                             break;
 
-                        case 6:
+                        case 9:
                             if (MotionCard.IsNormalStop(AXIS_Z))
                             {
                                 if (GetCurStepCount() == 0)   //要自动下降贴合PLC,直到Sensor停止
                                 {
                                     ShowInfo("(3/3)正在完成PLC贴合......");
                                     MotionCard.MoveAbs(AXIS_Z, 500, 1, PtPreFitPos_PLC[PT_Z] + 3);
-                                    SubStep = 7;
+                                    SubStep = 10;
                                 }
                             }
                             break;
-                        case 7: // 完毕,等待工作完毕
+                        case 10: // 完毕,等待工作完毕
                             if (MotionCard.IsNormalStop(AXIS_Z))
                             {
                                 MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
@@ -663,42 +693,12 @@ namespace JPT_TosaTest.WorkFlow
                                 MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
                                 StartMonitor(0, EnumRTShowType.None,true);
                                 BackToTempPos();
-                                SubStep = 8;
+                                SubStep = 11;
                             }
 
                             break;
 
 
-                        //去找Tia的Model和基准线，并画出region
-                        case 8:
-                            MotionCard.MoveAbs(AXIS_CY, 1000, 10, PtDropDown_PLC[PT_CY]);
-                            SubStep = 9;
-                            break;
-                        case 9:
-                            if (MotionCard.IsNormalStop(AXIS_CY))
-                            {
-                                SubStep = 10;
-                            }
-                            break;
-                        case 10: 
-                            lock (MonitorLock)
-                            {
-                                ShowInfo("寻找Tia标记");
-                                if (TiaFlag == null)
-                                {
-                                    Thread.Sleep(200);
-                                    lock (MonitorLock)
-                                    {
-                                        HalconVision.Instance.GrabImage(0);
-                                        FindLineTia0();
-                                        Thread.Sleep(1000);
-                                    }
-                                }
-                                else
-                                    HalconVision.Instance.ShowRoi(0, TiaFlag);
-                            }
-                            SubStep = 11;
-                            break;
                         case 11: // 完毕,等待工作完毕
                             ShowInfo("Support完毕");
                             return;
@@ -932,8 +932,8 @@ namespace JPT_TosaTest.WorkFlow
             {
                 In_CamID = 0,
                 In_ModelNameFullPath = ModelFulllPathFileName,
-                In_MinScaleThreshold=40,
-                In_MaxScaleThreshold=80
+                In_MinScaleThreshold=0,
+                In_MaxScaleThreshold=255
             };
             HalconVision.Instance.ProcessImage(FindTiaModelStep);
 

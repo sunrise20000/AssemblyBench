@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Package;
 using AxisParaLib;
 
-namespace JPT_TosaTest.MotionCards
+namespace IrixiMotionLib
 {
     public class IrixiEE0017
     {
@@ -23,7 +23,7 @@ namespace JPT_TosaTest.MotionCards
 
         public EventHandler<UInt16?> OnOutputStateChanged;
         public EventHandler<UInt16?> OnInputStateChanged;
-        public EventHandler<Tuple<byte, AxisArgs>> OnAxisStateChanged;
+        public EventHandler<AxisStateChangeArgs> OnAxisStateChanged;
 
 
         private Irixi_HOST_CMD_HOME CommandHome = new Irixi_HOST_CMD_HOME();
@@ -1058,7 +1058,12 @@ namespace JPT_TosaTest.MotionCards
                     {
                         if (this.GetMcsuState(Index, out AxisArgs state))   //更新状态
                         {
-                            OnAxisStateChanged?.Invoke(this, new Tuple<byte, AxisArgs>((byte)(Index), state));
+                            var arg = new AxisStateChangeArgs()
+                            {
+                                AxisNo = (byte)Index,
+                                AxisState = state
+                            };
+                            OnAxisStateChanged?.Invoke(this, arg);
                             if (AxisStateList[IndexBase0].IsBusy)   //如果电机在忙就一直查询
                                 AxisStateList[IndexBase0].ReqStartTime = DateTime.Now.Ticks;
                         }
@@ -1189,6 +1194,8 @@ namespace JPT_TosaTest.MotionCards
                     {
                         CheckAxisState(Enumcmd.HOST_CMD_MOVE, j);
                     }
+                    if (OnAxisStateChanged != null && OnOutputStateChanged != null)
+                        break;
                 }
 
                 
