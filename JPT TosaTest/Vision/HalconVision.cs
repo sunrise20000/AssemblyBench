@@ -1498,7 +1498,7 @@ namespace JPT_TosaTest.Vision
             HOperatorSet.SetPart(WindowHandle, 0, 0, height, width);
             HOperatorSet.DispObj(HoImageList[nCamID], WindowHandle);
         }
-        #region Private method
+        
         public void FindLine(HObject ho_Image, EnumEdgeType Polarity, EnumSelectType selectType, HTuple hv_CaliperNum, HTuple hv_EdgeGrayValue, HTuple hv_RoiRow, HTuple hv_RoiCol, HTuple hv_RoiPhi, HTuple hv_RoiL1, HTuple hv_RoiL2, out HTuple hv_OutRowStart, out HTuple hv_OutColStart, out HTuple hv_OutRowEnd, out HTuple hv_OutColEnd)
         {
             // Local iconic variables 
@@ -2569,7 +2569,7 @@ namespace JPT_TosaTest.Vision
                     HOperatorSet.DispObj(regionOut, it.Value);
             }
         }
-        #endregion
+    
     }
 
     public class VisionDataHelper
