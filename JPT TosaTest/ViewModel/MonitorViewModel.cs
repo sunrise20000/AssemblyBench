@@ -46,6 +46,9 @@ namespace JPT_TosaTest.ViewModel
             IOCollectionListInput = new List<ObservableCollection<IOModel>>();
             IOCollectionListOutput = new List<ObservableCollection<IOModel>>();
             AxisStateCollection = new ObservableCollection<AxisArgs>();
+
+
+
             foreach (var it in ConfigMgr.Instance.HardwareCfgMgr.AxisSettings)
             {
                 var MotionCard = MotionMgr.Instance.FindMotionCardByAxisIndex(it.AxisNo);
@@ -114,17 +117,43 @@ namespace JPT_TosaTest.ViewModel
             //初始化当前显示的IO板卡
             CurrentIoCardCollectionInput = IOCollectionListInput.Count > 0 ? IOCollectionListInput.First() : null;
             CurrentIoCardCollectionOutput = IOCollectionListOutput.Count > 0 ? IOCollectionListOutput.First() : null;
-
             #endregion
+
+           
+
 
             #region 订阅事件
             foreach (var motionDic in MotionMgr.Instance.MotionDic)
             {
+                //第一次主动查询
+                if (motionDic.Key.Equals("Motion_IrixiEE0017[0]"))
+                {
+                    for (int i = 0; i < motionDic.Value.MAX_AXIS - motionDic.Value.MIN_AXIS + 1; i++)
+                    {
+                        motionDic.Value.GetAxisState(i , out AxisArgs args);
+                        Value_OnAxisStateChanged(motionDic.Value, i, args);
+                    }
+                }
+                
+                //订阅
                 motionDic.Value.OnAxisStateChanged += Value_OnAxisStateChanged; ;
-                motionDic.Value.OnErrorOccured += Value_OnErrorOccured; ;
+                motionDic.Value.OnErrorOccured += Value_OnErrorOccured;
+
+             
             }
             foreach (var iocardDic in IOCardMgr.Instance.IOCardDic)
             {
+
+                //第一次主动查询
+                if (iocardDic.Key.Equals("IO_IrixiEE0017[0]"))
+                {
+                    iocardDic.Value.ReadIoInWord(0, out int IoInWord);
+                    iocardDic.Value.ReadIoOutWord(0, out int IoOutWord);
+                    Value_OnIOStateChanged(iocardDic.Value, EnumIOType.INPUT, 0, (ushort)IoInWord);
+                    Value_OnIOStateChanged(iocardDic.Value, EnumIOType.OUTPUT, 0, (ushort)IoOutWord);
+                }
+
+                //订阅
                 iocardDic.Value.OnIOStateChanged += Value_OnIOStateChanged;
             }
             #endregion
@@ -240,7 +269,7 @@ namespace JPT_TosaTest.ViewModel
         private void Value_OnAxisStateChanged(IMotion sender, int AxisNo, AxisArgs args)
         {
             //需要实时刷新的
-            int AxisNoTotal = AxisNo + sender.MIN_AXIS;
+            int AxisNoTotal = AxisNo + sender.MIN_AXIS; //在设置当中的轴号
             for (int j = 0; j < ConfigMgr.Instance.HardwareCfgMgr.AxisSettings.Count(); j++)
             {
                 if (ConfigMgr.Instance.HardwareCfgMgr.AxisSettings[j].AxisNo == AxisNoTotal)

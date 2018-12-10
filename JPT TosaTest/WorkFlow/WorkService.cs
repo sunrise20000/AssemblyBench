@@ -42,7 +42,7 @@ namespace JPT_TosaTest.WorkFlow
     {
         #region Private
         //start from 0
-        private const int AXIS_X = 3, AXIS_Y1 = 1, AXIS_Y2 = 2, AXIS_Z = 0, AXIS_CY = 5, AXIS_CZ = 4, AXIS_R = 6;
+        private const int AXIS_X = 6, AXIS_Y1 = 1, AXIS_Y2 = 2, AXIS_Z = 0, AXIS_CY = 5, AXIS_CZ = 4, AXIS_R = 3;
         private const int PT_X = 0, PT_Y1 = 1, PT_Y2 = 2, PT_Z = 3, PT_R = 4, PT_CY = 5, PT_CZ = 6;
         private const int VAC_PLC = 0, VAC_HSG = 2, TouchSensor = 6;
         private MotionCards.Motion_IrixiEE0017 MotionCard = null;
@@ -133,7 +133,9 @@ namespace JPT_TosaTest.WorkFlow
                                 Int32 Flag = ((Int32)CmdPara >> 16) & 0xFFFF;
                                 if ((Flag >> (ProductIndex[0]++) & 0x01) != 0)
                                 {
+                                    ShowInfo($"正在抓取第{ProductIndex[0]}个Support");
                                     GetProduct(ProductIndex[0], EnumProductType.SUPPORT);
+                                    ShowInfo($"抓取第{ProductIndex[0]}个Support完毕");
                                     if (ProductIndex[0] >= 6)
                                         ProductIndex[0] = 0;
                                     ClearAllStep();
@@ -145,7 +147,9 @@ namespace JPT_TosaTest.WorkFlow
                                 Int32 Flag = (Int32)CmdPara & 0xFFFF;
                                 if ((Flag >> (ProductIndex[1]++) & 0x01) != 0)
                                 {
+                                    ShowInfo($"正在抓取第{ProductIndex[0]}个PLC");
                                     GetProduct(ProductIndex[1], EnumProductType.PLC);
+                                    ShowInfo($"正在抓取第{ProductIndex[0]}个PLC完毕");
                                     if (ProductIndex[1] >= 6)
                                         ProductIndex[1] = 0;
                                     ClearAllStep();
@@ -201,10 +205,12 @@ namespace JPT_TosaTest.WorkFlow
                         MotionCard.Home(AXIS_Y2, 0, 500, 20, 50);
                         MotionCard.Home(AXIS_Y1, 0, 500, 20, 50);
                         MotionCard.Home(AXIS_CY, 0, 500, 5, 10);
+                        MotionCard.Home(AXIS_R, 0, 1000, 5, 10);
                         SubStep = 3;
                         break;
                     case 3:
-                        if (MotionCard.IsHomeStop(AXIS_X) && MotionCard.IsHomeStop(AXIS_Y1) && MotionCard.IsHomeStop(AXIS_Y2) && MotionCard.IsHomeStop(AXIS_CY))
+                        if (MotionCard.IsHomeStop(AXIS_X) && MotionCard.IsHomeStop(AXIS_Y1) && MotionCard.IsHomeStop(AXIS_Y2) && 
+                            MotionCard.IsHomeStop(AXIS_CY) && MotionCard.IsNormalStop(AXIS_Z))
                         {
                             SubStep = 4;
                         }
@@ -276,82 +282,95 @@ namespace JPT_TosaTest.WorkFlow
                         IOCard.WriteIoOutBit(VAC_PLC, false);
                         SubStep = 1;
                         break;
-                    case 1: //移动PT_X到取料点
+                    case 1: //移动R轴到中间位置
                         if (MotionCard.IsNormalStop(AXIS_Z))
                         {
-                            MotionCard.MoveAbs(AXIS_X, 500, 100, TargetX);
+                            MotionCard.MoveAbs(AXIS_R, 1000, 10, PtLeftTop[PT_R]);
                             SubStep = 2;
                         }
                         break;
-                    case 2: // PT_Y1到取料点
-                        if (MotionCard.IsNormalStop(AXIS_X))
+                    case 2:
+                        if (MotionCard.IsNormalStop(AXIS_R))
                         {
-                            MotionCard.MoveAbs(AXIS_Y1, 500, 100, TargetY1);
                             SubStep = 3;
                         }
                         break;
-                    case 3:
-                        if (MotionCard.IsNormalStop(AXIS_Y1))
+                    case 3: //移动PT_X到取料点
+                        if (MotionCard.IsNormalStop(AXIS_R))
                         {
+                            MotionCard.MoveAbs(AXIS_X, 500, 100, TargetX);
                             SubStep = 4;
                         }
                         break;
-                    case 4: //下降PT_Z轴//粗略下降
-                        MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
-                        MotionCard.MoveAbs(AXIS_Z, 500, 100, PtLeftTop[PT_Z]-1);
-                        SubStep = 5;
+                    case 4: // PT_Y1到取料点
+                        if (MotionCard.IsNormalStop(AXIS_X))
+                        {
+                            MotionCard.MoveAbs(AXIS_Y1, 500, 100, TargetY1);
+                            SubStep = 5;
+                        }
                         break;
                     case 5:
-                        if (MotionCard.IsNormalStop(AXIS_Z))
+                        if (MotionCard.IsNormalStop(AXIS_Y1))
                         {
-                            MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
                             SubStep = 6;
                         }
                         break;
-                    case 6: //下降PT_Z轴//，慢慢下降
+                    case 6: //下降PT_Z轴//粗略下降
                         MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
-                        MotionCard.MoveAbs(AXIS_Z, 500, 1, PtLeftTop[PT_Z]);
+                        MotionCard.MoveAbs(AXIS_Z, 500, 100, PtLeftTop[PT_Z]-1);
                         SubStep = 7;
                         break;
                     case 7:
                         if (MotionCard.IsNormalStop(AXIS_Z))
                         {
                             MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
-                            IOCard.WriteIoOutBit(VAC_PLC, true);
                             SubStep = 8;
                         }
                         break;
-                  
-                    case 8: //PT_Z轴抬起
-                        Thread.Sleep(500);
-                        ShowInfo("将Z轴抬起");
-                        MotionCard.MoveAbs(AXIS_Z, 500, 100, 0);
+                    case 8: //下降PT_Z轴//，慢慢下降
+                        MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
+                        MotionCard.MoveAbs(AXIS_Z, 500, 1, PtLeftTop[PT_Z]);
                         SubStep = 9;
                         break;
                     case 9:
                         if (MotionCard.IsNormalStop(AXIS_Z))
                         {
-                            ShowInfo("移动X轴到放置位");
-                            MotionCard.MoveAbs(AXIS_X, 500, 100, PtDropDown[PT_X]);
+                            MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
+                            IOCard.WriteIoOutBit(VAC_PLC, true);
                             SubStep = 10;
                         }
                         break;
-                    case 10: //移动PT_Y2过去
-                        if (MotionCard.IsNormalStop(AXIS_X))
-                        {
-                            MotionCard.MoveAbs(AXIS_Y2, 500, 100, PtDropDown[PT_Y2]);
-                            SubStep = 11;
-                        }
+                  
+                    case 10: //PT_Z轴抬起
+                        Thread.Sleep(500);
+                        ShowInfo("将Z轴抬起");
+                        MotionCard.MoveAbs(AXIS_Z, 500, 100, 0);
+                        SubStep = 11;
                         break;
-                    case 11: //移动到放置点的PT_X位置并下降PT_Z到HSG表面，不要下去
-                        if (MotionCard.IsNormalStop(AXIS_Y2))
+                    case 11:
+                        if (MotionCard.IsNormalStop(AXIS_Z))
                         {
-                            MotionCard.MoveAbs(AXIS_Z, 500, 100, PtDropDown[PT_Z]);
+                            ShowInfo("移动X轴到放置位");
+                            MotionCard.MoveAbs(AXIS_X, 500, 100, PtDropDown[PT_X]);
                             SubStep = 12;
                         }
                         break;
+                    case 12: //移动PT_Y2过去
+                        if (MotionCard.IsNormalStop(AXIS_X))
+                        {
+                            MotionCard.MoveAbs(AXIS_Y2, 500, 100, PtDropDown[PT_Y2]);
+                            SubStep = 13;
+                        }
+                        break;
+                    case 13: //移动到放置点的PT_X位置并下降PT_Z到HSG表面，不要下去
+                        if (MotionCard.IsNormalStop(AXIS_Y2))
+                        {
+                            MotionCard.MoveAbs(AXIS_Z, 500, 100, PtDropDown[PT_Z]);
+                            SubStep = 14;
+                        }
+                        break;
                     
-                    case 12: //
+                    case 14: //
                         if (MotionCard.IsNormalStop(AXIS_Z))
                         {
                             if (ProductType == EnumProductType.PLC)
@@ -364,10 +383,10 @@ namespace JPT_TosaTest.WorkFlow
                                 PopAndPushStep(STEP.CmdGetProductSupport);
                                 Work_Support();
                             }
-                            SubStep = 13;
+                            SubStep = 15;
                         }
                         break;
-                    case 13:    //等待调整位置
+                    case 15:    //等待调整位置
                         //ShowInfo("取料完毕");
                         return;
                     default:

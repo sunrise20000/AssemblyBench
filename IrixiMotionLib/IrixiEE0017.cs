@@ -821,8 +821,8 @@ namespace IrixiMotionLib
             return true;
         }
 
-        #region Private
-        private bool GetMcsuState(int AxisNo, out AxisArgs axisargs)
+        
+        public bool GetMcsuState(int AxisNo, out AxisArgs axisargs)
         {
             lock (ComportLock)
             {
@@ -863,7 +863,7 @@ namespace IrixiMotionLib
             }
         }
 
-
+        #region Private
         private List<byte> TempList = new List<byte>();
         private int ExpectLength = 0;
         private void Comport_DataReceived1(object sender, SerialDataReceivedEventArgs e)
@@ -981,7 +981,7 @@ namespace IrixiMotionLib
             //TaskParsePackage.Start();
             //}
             #endregion
-            GetStateWhenFirstLoad();
+            //GetStateWhenFirstLoad();
         }
         //处理收到的包
         private void ProcessPackage(byte[] data)
@@ -1176,32 +1176,32 @@ namespace IrixiMotionLib
 
 
 
-        private async void GetStateWhenFirstLoad()
-        {
-            //第一次需要先查询一下位置
-            await Task.Run(() =>
-            {
-                for (int i = 0; i < 20; i++)
-                {
-                    Thread.Sleep(500);
-                    UInt16? realValue = null;
-                    if (ReadIoOutWord(0, out int value))
-                    {
-                        realValue = (UInt16)value;
-                    }
-                    OnOutputStateChanged?.Invoke(this, realValue);
-                    for (int j = 1; j <= 12; j++)
-                    {
-                        CheckAxisState(Enumcmd.HOST_CMD_MOVE, j);
-                    }
-                    if (OnAxisStateChanged != null && OnOutputStateChanged != null)
-                        break;
-                }
+        //private async void GetStateWhenFirstLoad()
+        //{
+        //    //第一次需要先查询一下位置
+        //    await Task.Run(() =>
+        //    {
+        //        for (int i = 0; i < 20; i++)
+        //        {
+        //            Thread.Sleep(500);
+        //            UInt16? realValue = null;
+        //            if (ReadIoOutWord(0, out int value))
+        //            {
+        //                realValue = (UInt16)value;
+        //            }
+        //            OnOutputStateChanged?.Invoke(this, realValue);
+        //            for (int j = 1; j <= 12; j++)
+        //            {
+        //                CheckAxisState(Enumcmd.HOST_CMD_MOVE, j);
+        //            }
+        //            if (OnAxisStateChanged != null && OnOutputStateChanged != null)
+        //                break;
+        //        }
 
                 
-            });
+        //    });
            
-        }
+        //}
         #endregion
     }
 }

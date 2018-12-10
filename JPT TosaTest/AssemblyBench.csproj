@@ -169,6 +169,7 @@
     <Compile Include="Config\SystemCfgManager\SystemParaModel.cs" />
     <Compile Include="Config\UserManager\UserCfgManager.cs" />
     <Compile Include="Config\UserManager\UserModel.cs" />
+    <Compile Include="Converter\AxisType2Text.cs" />
     <Compile Include="Converter\ContrastValue2Text.cs" />
     <Compile Include="Converter\double2CurPosString.cs" />
     <Compile Include="Converter\Bool2Image.cs" />

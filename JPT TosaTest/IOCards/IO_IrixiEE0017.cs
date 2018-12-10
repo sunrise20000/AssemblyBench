@@ -83,24 +83,13 @@ namespace JPT_TosaTest.IOCards
         public  bool ReadIoOutBit(int Index, out bool value)
         {
             value = false;
-            if (OutputValue.HasValue)
-            {
-                value = ((OutputValue >> Index) & 0x01) == 1;
-                return true;
-            }
-            return false ;
-            
+            return _controller.ReadIoOutBit(Index+1, out value);
         }
 
         public  bool ReadIoOutWord(int StartIndex, out int value)
         {
             value = 0;
-            if (OutputValue.HasValue)
-            {
-                value = (int)OutputValue;
-                return true;
-            }
-            return false;
+            return _controller.ReadIoOutWord(StartIndex+1, out value);
         }
 
         public  bool WriteIoOutBit(int Index, bool value)

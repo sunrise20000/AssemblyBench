@@ -117,8 +117,9 @@ namespace JPT_TosaTest.MotionCards
             {
                 return false;
             }
-            state = AxisArgsList[AxisNo];
-            return true;
+            _controller.GetMcsuState(AxisNo + MIN_AXIS, out state);
+            AxisArgsList[AxisNo] = state;
+            return state!=null;
         }
 
         /// <summary>
