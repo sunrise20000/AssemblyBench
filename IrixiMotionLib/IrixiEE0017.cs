@@ -116,7 +116,6 @@ namespace IrixiMotionLib
                     Sp.Open();
                     if (Sp.IsOpen)
                     {
-                        StartParsePackage();
                         return true;
                     }
                     return false;
@@ -813,6 +812,7 @@ namespace IrixiMotionLib
             {
                 return false;
             }
+            AxisStateList[AxisNo - 1].AxisName = AxisName;
             AxisStateList[AxisNo - 1].GainFactor = (int)GainFactor;
             AxisStateList[AxisNo - 1].LimitP = LimitP;
             AxisStateList[AxisNo - 1].LimitN = LimitN;
@@ -913,76 +913,7 @@ namespace IrixiMotionLib
 
         }
 
-        private void StartParsePackage()
-        {
-            #region 解析包放在中断中进行
-            //long TickStart = 0;
-            //if (TaskParsePackage == null || TaskParsePackage.IsCanceled || TaskParsePackage.IsCompleted)
-            //{
-            //ctsParsePackage = new CancellationTokenSource();
 
-            //TaskParsePackage = new Task(() =>
-            //{
-            //    TickStart = DateTime.Now.Ticks;
-            //    List<byte> TempList = new List<byte>();
-            //    int ExpectLength = 0;
-            //    while (!ctsParsePackage.IsCancellationRequested)
-            //    {
-            //        Thread.Sleep(1);
-            //        if (FrameRecvByteQueue.Count > 0)
-            //        {
-            //            byte data = 0x00;
-            //            lock (PackageQueueLock)
-            //            {
-            //                try
-            //                {
-            //                    data = FrameRecvByteQueue.Dequeue();
-            //                }
-            //                catch (InvalidOperationException ex)
-            //                {
-            //                    continue;
-            //                }
-            //            }
-            //            if (data == PACKAGE_HEADER && TempList.Count == 0)
-            //            {
-            //                TempList.Add(data);
-            //            }
-            //            else if (TempList.Count > 0)
-            //            {
-            //                TempList.Add(data);
-            //                if (TempList.Count == 3)
-            //                {
-            //                    ExpectLength = TempList[1] + (TempList[2] << 8);
-            //                }
-            //                else if (ExpectLength > 0)
-            //                {
-            //                    if (TempList.Count == ExpectLength + 7)
-            //                    {
-            //                        byte[] dataList = TempList.ToArray();
-            //                        UInt32 Crc32 = (UInt32)(dataList[dataList.Length - 4] + (dataList[dataList.Length - 3] << 8) + (dataList[dataList.Length - 2] << 16) + (dataList[dataList.Length - 1] << 24));
-            //                        UInt32 CalcCrc32 = Crc32Instance.Calculate(dataList, 0, dataList.Length - 4);
-            //                        if (Crc32 == CalcCrc32) //校验成功
-            //                        {
-            //                            ProcessPackage(dataList);
-            //                        }
-            //                        ExpectLength = 0;
-            //                        TempList = new List<byte>();
-            //                    }
-            //                }
-            //            }
-            //        }
-            //        else
-            //        {
-
-            //        }
-            //    }
-
-            //}, ctsParsePackage.Token);
-            //TaskParsePackage.Start();
-            //}
-            #endregion
-            //GetStateWhenFirstLoad();
-        }
         //处理收到的包
         private void ProcessPackage(byte[] data)
         {
@@ -1175,33 +1106,7 @@ namespace IrixiMotionLib
         }
 
 
-
-        //private async void GetStateWhenFirstLoad()
-        //{
-        //    //第一次需要先查询一下位置
-        //    await Task.Run(() =>
-        //    {
-        //        for (int i = 0; i < 20; i++)
-        //        {
-        //            Thread.Sleep(500);
-        //            UInt16? realValue = null;
-        //            if (ReadIoOutWord(0, out int value))
-        //            {
-        //                realValue = (UInt16)value;
-        //            }
-        //            OnOutputStateChanged?.Invoke(this, realValue);
-        //            for (int j = 1; j <= 12; j++)
-        //            {
-        //                CheckAxisState(Enumcmd.HOST_CMD_MOVE, j);
-        //            }
-        //            if (OnAxisStateChanged != null && OnOutputStateChanged != null)
-        //                break;
-        //        }
-
-                
-        //    });
-           
-        //}
+    
         #endregion
     }
 }

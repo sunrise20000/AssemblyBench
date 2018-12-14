@@ -117,9 +117,15 @@ namespace JPT_TosaTest.MotionCards
             {
                 return false;
             }
-            _controller.GetMcsuState(AxisNo + MIN_AXIS, out state);
-            AxisArgsList[AxisNo] = state;
-            return state!=null;
+            _controller.GetMcsuState(AxisNo + MIN_AXIS, out AxisArgs stateTemp);
+            AxisArgsList[AxisNo].IsBusy = stateTemp.IsBusy;
+            AxisArgsList[AxisNo].IsHomed = stateTemp.IsHomed;
+            AxisArgsList[AxisNo].CurAbsPos = stateTemp.CurAbsPos;
+            AxisArgsList[AxisNo].CurAbsPosPuse = stateTemp.CurAbsPosPuse;
+            AxisArgsList[AxisNo].ErrorCode = stateTemp.ErrorCode;
+            AxisArgsList[AxisNo].IsHomedAndNotBusy = stateTemp.IsHomed && (!stateTemp.IsBusy);
+            state = AxisArgsList[AxisNo];
+            return stateTemp != null;
         }
 
         /// <summary>

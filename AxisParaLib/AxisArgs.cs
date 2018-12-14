@@ -30,6 +30,7 @@ namespace AxisParaLib
         private bool _originTrigged;
         private UnitBase _unit=new Millimeter();
         private EnumAxisType _axisType;
+        private bool _isHomedAndNotBusy;
 
         public AxisArgs()
         {
@@ -55,6 +56,7 @@ namespace AxisParaLib
                 UpdateProperty(ref _curAbsPos, value);
             }
         }
+
         public int CurAbsPosPuse
         {
             get { return _curAbsPosPuse; }
@@ -71,6 +73,18 @@ namespace AxisParaLib
                 UpdateProperty(ref _isHomed, value);
             }
         }
+        public bool IsHomedAndNotBusy
+        {
+            get
+            {
+                return _isHomedAndNotBusy;
+            }
+            set
+            {
+                UpdateProperty(ref _isHomedAndNotBusy, value);
+            }
+        }
+        
         public bool LimitPTrigged
         {
             get

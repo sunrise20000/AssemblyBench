@@ -101,6 +101,7 @@ namespace JPT_TosaTest.WorkFlow
             MotionCard.SetCssThreshold(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, LowPressure, HightPressure);
             MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
             SubStep = -1;
+            ProductIndex = new int[] { 0, 0 };
             return GetAllPoint() && MotionCard != null && IOCard != null;
         }
         public WorkService(WorkFlowConfig cfg) : base(cfg)
@@ -147,9 +148,9 @@ namespace JPT_TosaTest.WorkFlow
                                 Int32 Flag = (Int32)CmdPara & 0xFFFF;
                                 if ((Flag >> (ProductIndex[1]++) & 0x01) != 0)
                                 {
-                                    ShowInfo($"正在抓取第{ProductIndex[0]}个PLC");
+                                    ShowInfo($"正在抓取第{ProductIndex[1]}个PLC");
                                     GetProduct(ProductIndex[1], EnumProductType.PLC);
-                                    ShowInfo($"正在抓取第{ProductIndex[0]}个PLC完毕");
+                                    ShowInfo($"正在抓取第{ProductIndex[1]}个PLC完毕");
                                     if (ProductIndex[1] >= 6)
                                         ProductIndex[1] = 0;
                                     ClearAllStep();
@@ -335,6 +336,7 @@ namespace JPT_TosaTest.WorkFlow
                     case 9:
                         if (MotionCard.IsNormalStop(AXIS_Z))
                         {
+                            MotionCard.SetCssThreshold(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, LowPressure, HightPressure);
                             MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
                             IOCard.WriteIoOutBit(VAC_PLC, true);
                             SubStep = 10;
@@ -351,7 +353,7 @@ namespace JPT_TosaTest.WorkFlow
                         if (MotionCard.IsNormalStop(AXIS_Z))
                         {
                             ShowInfo("移动X轴到放置位");
-                            MotionCard.MoveAbs(AXIS_X, 500, 100, PtDropDown[PT_X]);
+                            MotionCard.MoveAbs(AXIS_X, 1000, 10, PtDropDown[PT_X]);
                             SubStep = 12;
                         }
                         break;
@@ -574,15 +576,20 @@ namespace JPT_TosaTest.WorkFlow
                             SubStep = 5;
                             break;
 
+                        //将焦点移到PLC上表面
+
                         case 5:
-                            if (MotionCard.IsNormalStop(AXIS_CY))
+                            MotionCard.MoveAbs(AXIS_CZ, 1000, 10,PtDropDown_PLC[PT_CZ]);
+                            SubStep = 6;
+                            break;
+                        case 6:
+                            if (MotionCard.IsHomeStop(AXIS_CZ))
                             {
-                                Thread.Sleep(200);
                                 ShowInfo("(1/3)请调整PLC的位置，完毕后点击【PLC按键】");
-                                SubStep = 6;
+                                SubStep = 7;
                             }
                             break;
-                        case 6: //开始拍照并显示
+                        case 7: //开始拍照并显示
                             if (GetCurStepCount() == 0)   //要自动下降贴合PLC
                             {
                                 ShowInfo("(2/3)请先调整PLC的位置，完毕后点击【PLC按键】自动贴合");
@@ -590,33 +597,33 @@ namespace JPT_TosaTest.WorkFlow
                                
                                 MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
                                 MotionCard.MoveAbs(AXIS_Z, 500, 100, PtPreFitPos_PLC[PT_Z]);
-                                SubStep = 7;
+                                SubStep = 8;
                             }
                             break;
-                        case 7: //将相机移动到下表面 
+                        case 8: //将相机移动到下表面 
                             MotionCard.MoveAbs(AXIS_CZ, 1000, 10, PtCamBottom_Support[PT_CZ]);
-                            SubStep = 8;
+                            SubStep = 9;
                             break;
-                        case 8: //保持CY在DropDown处
+                        case 9: //保持CY在DropDown处
                             if (MotionCard.IsNormalStop(AXIS_CZ))
                             {
                                 MotionCard.MoveAbs(AXIS_CY, 1000, 10, PtDropDown_PLC[PT_CY]);
-                                SubStep = 9;
+                                SubStep = 10;
                             }
                             break;
 
-                        case 9:
+                        case 10:
                             if (MotionCard.IsNormalStop(AXIS_Z))
                             {
                                 if (GetCurStepCount() == 0)   //要自动下降贴合PLC,直到Sensor停止
                                 {
                                     ShowInfo("(3/3)正在完成PLC贴合......");
                                     MotionCard.MoveAbs(AXIS_Z, 500, 1, PtPreFitPos_PLC[PT_Z] + 3);
-                                    SubStep = 10;
+                                    SubStep = 11;
                                 }
                             }
                             break;
-                        case 10: // 完毕,等待工作完毕
+                        case 11: // 完毕,等待工作完毕
                             if (MotionCard.IsNormalStop(AXIS_Z))
                             {
                                 MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, false);
@@ -673,7 +680,7 @@ namespace JPT_TosaTest.WorkFlow
                             {
                                 ShowInfo("(2/3)请再次调整Support的位置，然后点击【Support按键】完成自动贴合");
                                 PushStep(STEP.CmdGetProductSupport);
-                               
+                                MotionCard.SetCssThreshold(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, LowPressure, HightPressure);
                                 MotionCard.SetCssEnable(MotionCards.IrixiCommand.EnumCssChannel.CSSCH1, true);
                                 MotionCard.MoveAbs(AXIS_Z, 500, 20, PtPreFitPos_Support[PT_Z]);
                                 Thread.Sleep(200);
@@ -805,17 +812,21 @@ namespace JPT_TosaTest.WorkFlow
         {
             //显示最终计算的线
             var LineListForCalc = new List<Tuple<double, double, double, double>>();
-            foreach (var it in Tool_StepFindLineBottomByModel.Out_Lines)
-                LineListForCalc.Add(new Tuple<double, double, double, double>(it.Item1.D, it.Item2.D, it.Item3.D, it.Item4.D));
-            Tool_ShowLineBottom = new StepShowLineBottom()
+            if (Tool_StepFindLineBottomByModel.Out_Lines != null)
             {
-                In_CamID = 0,
-                In_PixGainFactor = Tool_CalibImage.Out_PixGainFactor,
-                In_Lines = LineListForCalc
-            };
+                foreach (var it in Tool_StepFindLineBottomByModel.Out_Lines)
+                    LineListForCalc.Add(new Tuple<double, double, double, double>(it.Item1.D, it.Item2.D, it.Item3.D, it.Item4.D));
+                Tool_ShowLineBottom = new StepShowLineBottom()
+                {
+                    In_CamID = 0,
+                    In_PixGainFactor = Tool_CalibImage.Out_PixGainFactor,
+                    In_Lines = LineListForCalc
+                };
 
-            HalconVision.Instance.ProcessImage(Tool_ShowLineBottom);//会自动显示
-            return true;
+                HalconVision.Instance.ProcessImage(Tool_ShowLineBottom);//会自动显示
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

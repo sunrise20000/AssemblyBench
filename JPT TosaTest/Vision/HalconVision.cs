@@ -959,21 +959,26 @@ namespace JPT_TosaTest.Vision
                     disp_message(it.Value, "未找到足够多的区域完成计算", "window", 90, 0, "red", "true");
                 }
             }
+            //
+            HOperatorSet.OpeningCircle(ho_SelectedRegions1, out HObject ho_regionOpening, 3.5);
+            ho_SelectedRegions1.Dispose();
             ho_SortedRegions.Dispose();
-            HOperatorSet.SortRegion(ho_SelectedRegions1, out ho_SortedRegions, "character", "true", "row");
-
+            HOperatorSet.SortRegion(ho_regionOpening, out ho_SortedRegions, "character", "true", "row");
+            ho_regionOpening.Dispose();
             ho_RegionTrans.Dispose();
-            HOperatorSet.ShapeTrans(ho_SelectedRegions1, out ho_RegionTrans, "rectangle2");
+            HOperatorSet.ShapeTrans(ho_SortedRegions, out ho_RegionTrans, "rectangle2");
+            ho_SortedRegions.Dispose();
             HOperatorSet.AreaCenter(ho_RegionTrans, out hv_Area, out hv_Row, out hv_Column);
             HOperatorSet.OrientationRegion(ho_RegionTrans, out hv_Phi);
             HOperatorSet.SmallestRectangle2(ho_RegionTrans, out hv_Row3, out hv_Column3,
                 out hv_Phi1, out hv_Length1, out hv_Length2);
+            ho_RegionTrans.Dispose();
             hv_PhiSum = 0;
             for (hv_Index1 = 1; (int)hv_Index1 <= (int)(new HTuple(hv_Phi1.TupleLength())); hv_Index1 = (int)hv_Index1 + 1)
             {
                 if ((int)(new HTuple(((hv_Phi1.TupleSelect(hv_Index1 - 1))).TupleLess(0))) != 0)
                 {
-                    hv_Phi1[hv_Index1 - 1] = (hv_Phi1.TupleSelect(hv_Index1 - 1)) + ((new HTuple(90)).TupleRad() );
+                    hv_Phi1[hv_Index1 - 1] = (hv_Phi1.TupleSelect(hv_Index1 - 1)) + ((new HTuple(180)).TupleRad() );
                 }
                 hv_PhiSum = hv_PhiSum + (hv_Phi1.TupleSelect(hv_Index1 - 1));
             }
@@ -991,7 +996,7 @@ namespace JPT_TosaTest.Vision
             {
                 ho_Rectangle1.Dispose();
                 HOperatorSet.GenRectangle2(out ho_Rectangle1, hv_NewRow - ((2 * (hv_Index - 1)) * hv_DeltaRow),
-                    hv_NewCol - ((2 * (hv_Index - 1)) * hv_DeltaCol)+3, hv_PhiMean, hv_L1Mean - 60, 1000);
+                    hv_NewCol - ((2 * (hv_Index - 1)) * hv_DeltaCol)+5, hv_PhiMean+1.5708, 1000, hv_L1Mean - 60);
                 HOperatorSet.Union2(RegionOut, ho_Rectangle1, out RegionOut);
             }
             if (IsShowResult)

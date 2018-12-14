@@ -27,6 +27,7 @@ namespace JPT_TosaTest.Config.HardwareManager
         public AxisSetting()
         {
             AxisType = EnumAxisType.LinearAxis;
+            MaxSpeed = 100;
         }
 
         public string AxisName { get; set; }
